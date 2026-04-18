@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Создай своего героя — тест для подбора терапии</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #166088;
+            --accent: #ff6b6b;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            color: var(--secondary);
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .emoji {
+            font-size: 3rem;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+        }
+
+        .progress-container {
+            background: #e9ecef;
+            border-radius: 20px;
+            height: 12px;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 20px;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .question-card.active {
+            display: block;
+        }
+
+        .question-number {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            line-height: 1.4;
+            color: var(--dark);
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .option:hover {
+            border-color: var(--primary);
+            background: #f8f9fa;
+            transform: translateY(-2px);
+        }
+
+        .option.selected {
+            border-color: var(--primary);
+            background: rgba(74, 111, 165, 0.1);
+            font-weight: 600;
+        }
+
+        .option-letter {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-prev {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-prev:hover:not(:disabled) {
+            background: #5a6268;
+        }
+
+        .btn-next {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            background: var(--secondary);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            background: white;
+            border-radius: var(--radius);
+            padding: 40px;
+            margin-top: 30px;
+            box-shadow: var(--shadow);
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .hero-title {
+            color: var(--secondary);
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .hero-description {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: var(--radius);
+            border-left: 4px solid var(--accent);
+        }
+
+        .schools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .school-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .school-card.highlight {
+            border-color: var(--primary);
+            background: rgba(74, 111, 165, 0.05);
+            transform: scale(1.05);
+            box-shadow: var(--shadow);
+        }
+
+        .school-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--secondary);
+        }
+
+        .school-score {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 10px 0;
+        }
+
+        .insights {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: var(--radius);
+            margin: 30px 0;
+        }
+
+        .insight-title {
+            color: var(--secondary);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .restart-btn {
+            background: var(--accent);
+            color: white;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .restart-btn:hover {
+            background: #ff5252;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .question-card {
+                padding: 25px;
+            }
+            
+            .question-text {
+                font-size: 1.3rem;
+            }
+            
+            .schools-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><span class="emoji">🎮</span> Создай своего героя</h1>
+            <p class="subtitle">Десять вопросов — и ты узнаешь, какая школа терапии тебе подходит. Плюс описание персонажа, который живёт внутри тебя.</p>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div id="progressText">Вопрос 1 из 10</div>
+        </header>
+
+        <!-- Вопросы будут сгенерированы JavaScript -->
+        <div id="questionsContainer"></div>
+
+        <div class="buttons">
+            <button class="btn-prev" id="prevBtn" onclick="prevQuestion()" disabled>← Назад</button>
+            <button class="btn-next" id="nextBtn" onclick="nextQuestion()">Далее →</button>
+        </div>
+
+        <div class="result-container" id="resultContainer">
+            <!-- Результат будет сгенерирован JavaScript -->
+        </div>
+
+        <footer>
+            <p>Этот тест — игра для самоисследования, а не профессиональная диагностика. Он может помочь сориентироваться, но не заменит работу с настоящим психотерапевтом.</p>
+            <p>Если вам тяжело, если появляются суицидальные мысли, если кажется, что вы не справляетесь, — пожалуйста, обратитесь к специалисту.</p>
+            <button class="restart-btn" onclick="restartTest()">Пройти тест заново</button>
+        </footer>
+    </div>
+
+    <script>
+        // Вопросы в случайном порядке (школы зашифрованы)
+        const questions = [
+            {
+                text: "Что обычно помогает вам, когда накатывают сильные эмоции?",
+                options: [
+                    { text: "Остановиться и прислушаться к тому, что происходит в теле прямо сейчас.", school: "Г" },
+                    { text: "Спросить себя: «А что для меня в этом по-настоящему важно?»", school: "Э" },
+                    { text: "Понять, откуда эта реакция взялась — часто причина где-то в прошлом.", school: "П" },
+                    { text: "Составить план действий и двигаться по шагам.", school: "К" }
+                ]
+            },
+            {
+                text: "Что вы чаще всего замечаете в отношениях с близкими?",
+                options: [
+                    { text: "Страх близости или одиночества — будто это какая-то фундаментальная штука.", school: "Э" },
+                    { text: "Конкретные проблемы в поведении, которые можно как-то изменить.", school: "К" },
+                    { text: "Моменты, когда контакт прерывается, а чувства остаются невысказанными.", school: "Г" },
+                    { text: "Повторяющиеся сценарии, которые словно тянутся из детства.", school: "П" }
+                ]
+            },
+            {
+                text: "Какие сны кажутся вам самыми значимыми?",
+                options: [
+                    { text: "Сны, где я решаю практические задачи — всё ясно и по делу.", school: "К" },
+                    { text: "Сны о смерти, потере или бесцельных странствиях.", school: "Э" },
+                    { text: "Сны со сложными символами, которые хочется разгадать.", school: "П" },
+                    { text: "Яркие, почти реальные сны, где чувствуется каждое ощущение в теле.", school: "Г" }
+                ]
+            },
+            {
+                text: "Где в теле вы чувствуете злость?",
+                options: [
+                    { text: "Злость часто смешивается с другими чувствами из прошлого — трудно отделить.", school: "П" },
+                    { text: "Чётко в определённом месте — в кулаках, челюсти, животе.", school: "Г" },
+                    { text: "Сначала думаю, почему злюсь, и только потом замечаю реакцию в теле.", school: "К" },
+                    { text: "Злость как-то растворяется, когда спрашиваю себя: «Зачем я это терплю?»", school: "Э" }
+                ]
+            },
+            {
+                text: "Как вы относитесь к правилам и структуре?",
+                options: [
+                    { text: "Они полезны, но иногда мешают спонтанности и живому контакту.", school: "Г" },
+                    { text: "Они необходимы — без них не будет ни эффективности, ни прогресса.", school: "К" },
+                    { text: "Они иллюзорны — в итоге каждый сам создаёт себе правила.", school: "Э" },
+                    { text: "Они часто маскируют более глубокие, бессознательные мотивы.", school: "П" }
+                ]
+            },
+            {
+                text: "Что для вас значит «безопасность»?",
+                options: [
+                    { text: "Возможность быть принятым со всеми своими теневыми сторонами.", school: "П" },
+                    { text: "Предсказуемость и контроль над тем, что происходит.", school: "К" },
+                    { text: "Принятие того, что в жизни нет гарантий и полной безопасности.", school: "Э" },
+                    { text: "Возможность выражать чувства, не боясь, что тебя прервут или осудят.", school: "Г" }
+                ]
+            },
+            {
+                text: "Как вы справляетесь с ощущением, что застряли в жизни?",
+                options: [
+                    { text: "Спрашиваю себя: «Чего я сейчас избегаю чувствовать?»", school: "Г" },
+                    { text: "Ставлю конкретные цели и разбиваю их на маленькие шаги.", school: "К" },
+                    { text: "Ищу, какие бессознательные конфликты или страхи меня блокируют.", school: "П" },
+                    { text: "Признаю, что застревание — это часть человеческого опыта, и пытаюсь найти в этом смысл.", school: "Э" }
+                ]
+            },
+            {
+                text: "Какой внутренний диалог вам знаком больше всего?",
+                options: [
+                    { text: "«Что я сейчас чувствую? Где в теле это отзывается?»", school: "Г" },
+                    { text: "«Зачем я это делаю? Что это значит для моей жизни?»", school: "Э" },
+                    { text: "«Что я должен сделать? Какой план?»", school: "К" },
+                    { text: "«Почему я реагирую именно так? Что из прошлого на это влияет?»", school: "П" }
+                ]
+            },
+            {
+                text: "Когда вы помогаете другим, что для вас важнее всего?",
+                options: [
+                    { text: "Быть в контакте и сохранять искренность в отношениях.", school: "Г" },
+                    { text: "Помочь человеку найти собственный смысл и взять ответственность.", school: "Э" },
+                    { text: "Дать конкретные инструменты и стратегии, которые можно применить.", school: "К" },
+                    { text: "Помочь понять глубинные причины проблем.", school: "П" }
+                ]
+            },
+            {
+                text: "Как вы относитесь к неопределённости?",
+                options: [
+                    { text: "Вижу в ней проявление бессознательных процессов.", school: "П" },
+                    { text: "Стараюсь минимизировать её через планирование.", school: "К" },
+                    { text: "Принимаю её как часть живого процесса.", school: "Г" },
+                    { text: "Признаю её как фундаментальное условие человеческого существования.", school: "Э" }
+                ]
+            }
+        ];
+
+        // Расшифровка школ
+        const schools = {
+            "К": { name: "Когнитивно-поведенческая терапия (КПТ)", color: "#4a6fa5", emoji: "🧠" },
+            "П": { name: "Психоанализ", color: "#9b59b6", emoji: "🕵️" },
+            "Г": { name: "Гештальт-терапия", color: "#2ecc71", emoji: "🌿" },
+            "Э": { name: "Экзистенциальная терапия", color: "#e74c3c", emoji: "🌌" }
+        };
+
+        const heroProfiles = {
+            "К": {
+                title: "СТРАТЕГ",
+                description: "Вы мыслите ясно и пошагово. Для вас проблемы — это задачи, у которых есть решение, и вы знаете, как к нему подступиться. Планы и алгоритмы — ваша стихия."
+            },
+            "П": {
+                title: "АРХЕОЛОГ ТЕНЕЙ",
+                description: "Вы ищете глубину и причину. Вам интересно, откуда что берётся, и вы готовы копать в прошлое, чтобы понять настоящее. Бессознательные сценарии для вас — не абстракция, а поле для исследования."
+            },
+            "Г": {
+                title: "ЧУВСТВУЮЩИЙ КЛИНОК",
+                description: "Вы доверяете телу и моменту. Вам важно, что происходит прямо сейчас, и вы умеете слушать свои ощущения. Остановиться и почувствовать — ваш главный ресурс."
+            },
+            "Э": {
+                title: "СТРАННИК БЕЗ КАРТЫ",
+                description: "Вы задаёте большие вопросы. Смысл, свобода, одиночество — для вас это не абстракции, а то, с чем приходится иметь дело каждый день. Вы не ищете готовых ответов — вы ищете свой путь."
+            }
+        };
+
+        // Состояние теста
+        let currentQuestion = 0;
+        let answers = Array(questions.length).fill(null);
+        let scores = { "К": 0, "П": 0, "Г": 0, "Э": 0 };
+
+        // Инициализация
+        function initTest() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            questions.forEach((question, index) => {
+                const questionHTML = `
+                    <div class="question-card ${index === 0 ? 'active' : ''}" id="question${index}">
+                        <div class="question-number">Вопрос ${index + 1} из 10</div>
+                        <div class="question-text">${question.text}</div>
+                        <div class="options">
+                            ${question.options.map((option, optIndex) => `
+                                <div class="option" onclick="selectOption(${index}, ${optIndex})" id="q${index}o${optIndex}">
+                                    <div class="option-letter">${String.fromCharCode(65 + optIndex)}</div>
+                                    <div class="option-text">${option.text}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += questionHTML;
+            });
+            
+            updateProgress();
+        }
+
+        function selectOption(questionIndex, optionIndex) {
+            // Сброс выбора для этого вопроса
+            questions[questionIndex].options.forEach((_, i) => {
+                const optionEl = document.getElementById(`q${questionIndex}o${i}`);
+                optionEl.classList.remove('selected');
+            });
+            
+            // Выбор нового варианта
+            const selectedEl = document.getElementById(`q${questionIndex}o${optionIndex}`);
+            selectedEl.classList.add('selected');
+            
+            answers[questionIndex] = optionIndex;
+            
+            // Обновление кнопки "Далее"
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = false;
+        }
+
+        function nextQuestion() {
+            if (answers[currentQuestion] === null) return;
+            
+            if (currentQuestion < questions.length - 1) {
+                document.getElementById(`question${currentQuestion}`).classList.remove('active');
+                currentQuestion++;
+                document.getElementById(`question${currentQuestion}`).classList.add('active');
+                
+                const nextBtn = document.getElementById('nextBtn');
+                const prevBtn = document.getElementById('prevBtn');
+                
+                nextBtn.disabled = answers[currentQuestion] === null;
+                prevBtn.disabled = false;
+                
+                if (currentQuestion === questions.length - 1) {
+                    nextBtn.textContent = 'Узнать результат →';
+                }
+                
+                updateProgress();
+            } else {
+                calculateResults();
+                showResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                document.getElementById(`question${currentQuestion}`).classList.remove('active');
+                currentQuestion--;
+                document.getElementById(`question${currentQuestion}`).classList.add('active');
+                
+                const nextBtn = document.getElementById('nextBtn');
+                const prevBtn = document.getElementById('prevBtn');
+                
+                nextBtn.disabled = answers[currentQuestion] === null;
+                prevBtn.disabled = currentQuestion === 0;
+                
+                if (currentQuestion < questions.length - 1) {
+                    nextBtn.textContent = 'Далее →';
+                }
+                
+                updateProgress();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `Вопрос ${currentQuestion + 1} из 10`;
+        }
+
+        function calculateResults() {
+            // Сброс счётчиков
+            scores = { "К": 0, "П": 0, "Г": 0, "Э": 0 };
+            
+            // Подсчёт баллов
+            answers.forEach((answerIndex, questionIndex) => {
+                if (answerIndex !== null) {
+                    const school = questions[questionIndex].options[answerIndex].school;
+                    scores[school]++;
+                }
+            });
+        }
+
+        function showResults() {
+            // Находим победившую школу
+            let maxScore = 0;
+            let winningSchool = "К";
+            
+            for (const [school, score] of Object.entries(scores)) {
+                if (score > maxScore) {
+                    maxScore = score;
+                    winningSchool = school;
+                }
+            }
+            
+            // Скрываем вопросы и кнопки
+            document.querySelectorAll('.question-card').forEach(card => {
+                card.style.display = 'none';
+            });
+            document.querySelector('.buttons').style.display = 'none';
+            
+            // Генерируем результаты
+            const resultContainer = document.getElementById('resultContainer');
+            
+            // Описание героя
+            const hero = heroProfiles[winningSchool];
+            
+            // Сортируем школы по баллам
+            const sortedSchools = Object.entries(scores)
+                .sort((a, b) => b[1] - a[1])
+                .map(([schoolCode, score]) => ({
+                    ...schools[schoolCode],
+                    code: schoolCode,
+                    score
+                }));
+            
+            // Генерация HTML результатов
+            resultContainer.innerHTML = `
+                <div class="hero-title">
+                    <span class="emoji">${schools[winningSchool].emoji}</span>
+                    ВАШ ГЕРОЙ: ${hero.title}
+                </div>
+                
+                <div class="hero-description">
+                    ${hero.description}
+                </div>
+                
+                <h2 style="color: var(--secondary); margin: 30px 0 20px;">📊 Ваши результаты:</h2>
+                
+                <div class="schools-grid">
+                    ${sortedSchools.map((school, index) => `
+                        <div class="school-card ${school.code === winningSchool ? 'highlight' : ''}">
+                            <div class="school-name">${school.name}</div>
+                            <div class="school-score">${school.score}</div>
+                            <div style="font-size: 0.9rem; color: #666;">баллов</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="insights">
+                    <div class="insight-title">
+                        <span style="font-size: 1.5rem;">💡</span>
+                        Рекомендация для вас:
+                    </div>
+                    <p style="font-size: 1.1rem; line-height: 1.6;">
+                        ${getRecommendation(winningSchool, sortedSchools)}
+                    </p>
+                </div>
+                
+                <div class="insights">
+                    <div class="insight-title">
+                        <span style="font-size: 1.5rem;">🎯</span>
+                        Как использовать этот результат:
+                    </div>
+                    <ul style="padding-left: 20px; font-size: 1.1rem; line-height: 1.6;">
+                        <li style="margin-bottom: 10px;">Ищите терапевта, работающего в рекомендованном подходе</li>
+                        <li style="margin-bottom: 10px;">Обращайте внимание на то, какие вопросы и техники вам откликаются</li>
+                        <li style="margin-bottom: 10px;">Используйте сильные стороны вашего профиля в повседневной жизни</li>
+                        <li>Помните: идеального подхода не существует — важнее всего ваше доверие к терапевту</li>
+                    </ul>
+                </div>
+            `;
+            
+            // Показываем контейнер с результатами
+            resultContainer.style.display = 'block';
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function getRecommendation(winningSchool, sortedSchools) {
+            const recommendations = {
+                "К": "Когнитивно-поведенческая терапия (КПТ) может вам подойти. Она даёт конкретные инструменты для работы с мыслями и поведением. Вы сможете ставить ясные цели и отслеживать прогресс.",
+                "П": "Психоаналитическая терапия, возможно, будет вам близка. Вы сможете исследовать глубинные причины своих переживаний, понять бессознательные сценарии и работать с повторяющимися паттернами.",
+                "Г": "Гештальт-терапия поможет развить контакт с телом и текущим моментом. Вы научитесь завершать незавершённые ситуации, выражать чувства и находить ресурсы в «здесь и сейчас».",
+                "Э": "Экзистенциальная терапия предложит пространство для исследования фундаментальных вопросов: смысла, свободы, одиночества, смерти. Вы сможете найти собственные ответы на то, что значит жить осознанно."
+            };
+            
+            let recommendation = recommendations[winningSchool];
+            
+            // Добавляем интегративную рекомендацию, если второе место близко
+            const secondSchool = sortedSchools[1];
+            if (secondSchool.score >= sortedSchools[0].score - 1) {
+                recommendation += ` Также рассмотрите интегративный подход, сочетающий ${schools[winningSchool].name.toLowerCase()} с элементами ${secondSchool.name.toLowerCase()} — это может дать вам более полную картину.`;
+            }
+            
+            return recommendation;
+        }
+
+        function restartTest() {
+            currentQuestion = 0;
+            answers = Array(questions.length).fill(null);
+            scores = { "К": 0, "П": 0, "Г": 0, "Э": 0 };
+            
+            // Сбрасываем UI
+            document.querySelectorAll('.question-card').forEach(card => {
+                card.style.display = 'none';
+                card.classList.remove('active');
+            });
+            
+            document.getElementById('question0').classList.add('active');
+            document.getElementById('question0').style.display = 'block';
+            
+            document.querySelector('.buttons').style.display = 'flex';
+            document.getElementById('prevBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('nextBtn').textContent = 'Далее →';
+            
+            document.getElementById('resultContainer').style.display = 'none';
+            
+            // Сброс выбранных опций
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            updateProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Запускаем тест при загрузке
+        window.onload = initTest;
+    </script>
+</body>
+</html>

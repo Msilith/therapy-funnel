@@ -1,0 +1,37 @@
+{
+  "name": "therapy-funnel",
+  "version": "1.0.0",
+  "description": "Interactive web funnel for psychological profile assessment and therapy recommendation",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "dev": "serve . -p 3000",
+    "test": "echo \"No tests yet\" && exit 0",
+    "deploy": "gh-pages -d ."
+  },
+  "keywords": [
+    "psychotherapy",
+    "therapy",
+    "quiz",
+    "funnel",
+    "assessment",
+    "mental-health",
+    "web-app"
+  ],
+  "author": "Ssilith",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Akoilka/therapy-funnel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Akoilka/therapy-funnel/issues"
+  },
+  "homepage": "https://akoilka.github.io/therapy-funnel",
+  "devDependencies": {
+    "serve": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
