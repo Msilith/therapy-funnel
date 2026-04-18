@@ -61,6 +61,21 @@
         .logo {
             vertical-align: middle;
             display: inline-block;
+            width: 72px !important;
+            height: 72px !important;
+            border: 3px solid #8b0000;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.4), 0 0 20px rgba(255, 69, 0, 0.3);
+            background: linear-gradient(45deg, #1a1a1a, #2a0a0a);
+            padding: 4px;
+            transition: all 0.3s ease;
+            margin-right: 15px;
+        }
+        
+        .logo:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 6px 20px rgba(139, 0, 0, 0.6), 0 0 30px rgba(255, 69, 0, 0.5);
+            border-color: #ff4500;
         }
 
         .subtitle {
@@ -323,12 +338,18 @@
             }
         }
     </style>
-    <link rel="icon" href="images/sigil-32x32.jpg" type="image/jpeg">
+    <!-- Favicons сигила Люцифера -->
+    <link rel="icon" href="images/sigil-16x16.jpg" type="image/jpeg" sizes="16x16">
+    <link rel="icon" href="images/sigil-32x32.jpg" type="image/jpeg" sizes="32x32">
+    <link rel="icon" href="images/sigil-48x48.jpg" type="image/jpeg" sizes="48x48">
+    <link rel="icon" href="images/sigil-64x64.jpg" type="image/jpeg" sizes="64x64">
+    <link rel="apple-touch-icon" href="images/sigil-64x64.jpg">
+    <meta name="theme-color" content="#8b0000">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><img src="images/sigil-48x48.jpg" class="logo" alt="Sigil" style="width: 48px; height: 48px; vertical-align: middle;"> Создай своего героя</h1>
+            <h1><img src="images/sigil-72x72.jpg" class="logo" alt="Sigil"> Создай своего героя</h1>
             <p class="subtitle">Десять вопросов — и ты узнаешь, какая школа терапии тебе подходит. Плюс описание персонажа, который живёт внутри тебя.</p>
             
             <div class="progress-container">
