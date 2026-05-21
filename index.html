@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.therapyvoid.com https://api.deepseek.com; img-src 'self' data:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://therapy-funnel.onrender.com https://api.deepseek.com; img-src 'self' data:;">
     <title>✸ Создай своего героя — тест для подбора терапии</title>
     <style>
         * {
@@ -1085,7 +1085,7 @@
 
         function getApiBase() {
             return (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-                ? '' : 'https://api.therapyvoid.com';
+                ? '' : 'https://therapy-funnel.onrender.com';
         }
 
         function showSnackbar(msg) {
