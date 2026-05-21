@@ -1,0 +1,25 @@
+# Render Blueprint — деплой в один клик
+# https://dashboard.render.com/ → New → Blueprint → выбрать репо
+
+services:
+  - type: web
+    name: therapy-funnel
+    env: node
+    region: frankfurt  # ближе к РФ, быстрее ответ
+    plan: free
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: JWT_SECRET
+        sync: false  # задать вручную в дашборде
+      - key: DEEPSEEK_API_KEY
+        sync: false  # задать вручную в дашборде
+
+# ⚠️ После деплоя зайди в Dashboard → therapy-funnel → Environment
+# и задай JWT_SECRET и DEEPSEEK_API_KEY
