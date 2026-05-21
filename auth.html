@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход — Therapy Funnel</title>
+    <style>
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 20px; color: #343a40;
+        }
+        .card {
+            background: white; border-radius: 12px; padding: 40px;
+            max-width: 420px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #166088; font-size: 1.8rem; margin-bottom: 6px; text-align: center;
+        }
+        .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 0.95rem; }
+        .tabs { display: flex; margin-bottom: 24px; border-bottom: 2px solid #e9ecef; }
+        .tab {
+            flex: 1; text-align: center; padding: 12px; cursor: pointer;
+            font-weight: 600; color: #666; border-bottom: 2px solid transparent;
+            margin-bottom: -2px; transition: all 0.2s; font-size: 1rem;
+        }
+        .tab.active { color: #4a6fa5; border-bottom-color: #4a6fa5; }
+        .form { display: none; }
+        .form.active { display: block; }
+        .field { margin-bottom: 16px; }
+        .field label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #555; }
+        .field input {
+            width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;
+            font-size: 1rem; transition: border-color 0.2s; box-sizing: border-box;
+        }
+        .field input:focus { outline: none; border-color: #4a6fa5; }
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: 8px;
+            font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            min-height: 48px; touch-action: manipulation;
+        }
+        .btn-primary { background: #4a6fa5; color: white; }
+        .btn-primary:hover { background: #166088; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .error { color: #e74c3c; font-size: 0.9rem; margin-bottom: 12px; display: none; }
+        .error.show { display: block; }
+        .success { color: #2ecc71; font-size: 0.9rem; margin-bottom: 12px; display: none; }
+        .success.show { display: block; }
+        .back-link { text-align: center; margin-top: 16px; }
+        .back-link a { color: #4a6fa5; text-decoration: none; font-size: 0.9rem; }
+        .info-box {
+            background: #f8f9fa; border-radius: 8px; padding: 14px; margin: 16px 0;
+            font-size: 0.85rem; color: #666; line-height: 1.5;
+        }
+        @media (max-width: 480px) {
+            .card { padding: 24px; }
+            h1 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔐 Therapy Funnel</h1>
+        <p class="subtitle">Сохраняйте результаты и общайтесь с AI-терапевтом</p>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('login')">Вход</div>
+            <div class="tab" onclick="switchTab('register')">Регистрация</div>
+        </div>
+
+        <div id="errorMsg" class="error"></div>
+        <div id="successMsg" class="success"></div>
+
+        <!-- Login -->
+        <form id="loginForm" class="form active" onsubmit="handleLogin(event)">
+            <div class="field">
+                <label>Email</label>
+                <input type="email" id="loginEmail" required autocomplete="email">
+            </div>
+            <div class="field">
+                <label>Пароль</label>
+                <input type="password" id="loginPassword" required autocomplete="current-password" minlength="4">
+            </div>
+            <button type="submit" class="btn btn-primary">Войти</button>
+        </form>
+
+        <!-- Register -->
+        <form id="registerForm" class="form" onsubmit="handleRegister(event)">
+            <div class="field">
+                <label>Email</label>
+                <input type="email" id="regEmail" required autocomplete="email">
+            </div>
+            <div class="field">
+                <label>Пароль (мин 4 символа)</label>
+                <input type="password" id="regPassword" required autocomplete="new-password" minlength="4">
+            </div>
+            <div class="info-box">
+                После регистрации вы получите <strong>3 пробные сессии</strong> с AI-гештальт-терапевтом (DeepSeek V3).
+                Pro-тариф с DeepSeek V4 Pro — скоро.
+            </div>
+            <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+        </form>
+
+        <div class="back-link">
+            <a href="index.html">← Вернуться к тесту</a>
+        </div>
+    </div>
+
+    <script>
+        // Определяем API URL
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? '' : 'https://therapy-funnel.onrender.com';
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+            document.querySelector(`.tab:nth-child(${tab === 'register' ? 2 : 1})`).classList.add('active');
+            document.getElementById(tab === 'register' ? 'registerForm' : 'loginForm').classList.add('active');
+            hideMessages();
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.classList.add('show');
+            document.getElementById('successMsg').classList.remove('show');
+        }
+
+        function showSuccess(msg) {
+            const el = document.getElementById('successMsg');
+            el.textContent = msg;
+            el.classList.add('show');
+            document.getElementById('errorMsg').classList.remove('show');
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMsg').classList.remove('show');
+            document.getElementById('successMsg').classList.remove('show');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            hideMessages();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Ошибка входа');
+
+                // Сохраняем токен и профиль
+                localStorage.setItem('tf_token', data.token);
+                localStorage.setItem('tf_user', JSON.stringify(data.user));
+
+                showSuccess('Вход выполнен! Перенаправляем...');
+                setTimeout(() => redirectAfterAuth(), 600);
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            hideMessages();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Ошибка регистрации');
+
+                localStorage.setItem('tf_token', data.token);
+                localStorage.setItem('tf_user', JSON.stringify(data.user));
+
+                showSuccess('Регистрация успешна! Перенаправляем...');
+                setTimeout(() => redirectAfterAuth(), 600);
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        function redirectAfterAuth() {
+            // Если пришли с параметром redirect — туда, иначе на чат
+            const params = new URLSearchParams(window.location.search);
+            const redirect = params.get('redirect');
+            if (redirect === 'chat') {
+                window.location.href = 'chat.html';
+            } else if (redirect === 'index') {
+                window.location.href = 'index.html';
+            } else {
+                window.location.href = 'chat.html';
+            }
+        }
+    </script>
+</body>
+</html>
