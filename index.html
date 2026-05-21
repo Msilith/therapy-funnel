@@ -10,6 +10,11 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         :root {
@@ -26,6 +31,7 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             padding: 20px;
+            padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
             color: var(--dark);
         }
 
@@ -126,6 +132,8 @@
             margin-bottom: 30px;
             line-height: 1.4;
             color: var(--dark);
+            overflow-wrap: break-word;
+            hyphens: auto;
         }
 
         .options {
@@ -135,7 +143,8 @@
         }
 
         .option {
-            padding: 20px;
+            padding: 18px 20px;
+            min-height: 52px;
             border: 2px solid #e9ecef;
             border-radius: var(--radius);
             cursor: pointer;
@@ -144,6 +153,8 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         .option:hover {
@@ -159,8 +170,10 @@
         }
 
         .option-letter {
-            width: 40px;
-            height: 40px;
+            min-width: 44px;
+            min-height: 44px;
+            width: 44px;
+            height: 44px;
             background: var(--primary);
             color: white;
             border-radius: 50%;
@@ -179,12 +192,14 @@
 
         button {
             padding: 15px 30px;
+            min-height: 48px;
             border: none;
             border-radius: var(--radius);
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            touch-action: manipulation;
         }
 
         .btn-prev {
@@ -316,47 +331,294 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* ── Планшеты и крупные телефоны (≤768px) ── */
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
             .container {
                 padding: 10px;
-                padding-bottom: 100px; /* место для фиксированных кнопок */
+                padding-bottom: 100px;
             }
-            
+
+            header {
+                padding: 20px 15px;
+                margin-bottom: 20px;
+            }
+
             h1 {
-                font-size: 2rem;
+                font-size: 1.7rem;
+                gap: 8px;
+                flex-wrap: wrap;
             }
-            
+
+            .logo {
+                width: 56px !important;
+                height: 56px !important;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+                margin-bottom: 15px;
+            }
+
             .question-card {
-                padding: 25px;
+                padding: 24px 18px;
+                margin-bottom: 15px;
             }
-            
+
             .question-text {
-                font-size: 1.3rem;
+                font-size: 1.2rem;
+                margin-bottom: 20px;
             }
-            
+
+            .option {
+                padding: 14px 16px;
+                min-height: 48px;
+                font-size: 1rem;
+                gap: 12px;
+            }
+
+            .option-letter {
+                min-width: 40px;
+                width: 40px;
+                height: 40px;
+                min-height: 40px;
+            }
+
             .schools-grid {
                 grid-template-columns: 1fr;
+                gap: 12px;
             }
-            
-            /* Улучшение видимости кнопок на мобильных */
+
+            .hero-title {
+                font-size: 1.5rem;
+                flex-wrap: wrap;
+            }
+
+            .hero-description {
+                font-size: 1rem;
+            }
+
+            .result-container {
+                padding: 24px;
+            }
+
+            .insights {
+                padding: 18px;
+            }
+
+            .insight-title {
+                font-size: 1.1rem;
+            }
+
             .buttons {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
                 background: white;
-                padding: 15px 20px;
+                padding: 12px 16px;
+                padding-bottom: max(12px, env(safe-area-inset-bottom));
                 box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
                 z-index: 100;
                 display: flex;
                 justify-content: space-between;
                 gap: 10px;
+                margin-top: 0;
             }
-            
+
             .btn-prev, .btn-next {
                 flex: 1;
-                padding: 18px 10px;
+                padding: 16px 10px;
+                font-size: 1rem;
+                min-height: 48px;
+            }
+
+            footer {
+                margin-top: 20px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* ── Маленькие телефоны (≤480px) ── */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+
+            .container {
+                padding: 8px;
+                padding-bottom: 90px;
+            }
+
+            header {
+                padding: 16px 12px;
+            }
+
+            h1 {
+                font-size: 1.35rem;
+                gap: 6px;
+            }
+
+            .logo {
+                width: 44px !important;
+                height: 44px !important;
+                border-width: 2px;
+            }
+
+            .subtitle {
+                font-size: 0.9rem;
+            }
+
+            .progress-container {
+                height: 8px;
+                margin: 20px 0;
+            }
+
+            #progressText {
+                font-size: 0.85rem;
+            }
+
+            .question-card {
+                padding: 18px 14px;
+            }
+
+            .question-number {
+                font-size: 0.9rem;
+            }
+
+            .question-text {
                 font-size: 1.1rem;
+                margin-bottom: 16px;
+            }
+
+            .options {
+                gap: 10px;
+            }
+
+            .option {
+                padding: 12px 14px;
+                min-height: 44px;
+                font-size: 0.9rem;
+                gap: 10px;
+            }
+
+            .option-letter {
+                min-width: 36px;
+                width: 36px;
+                height: 36px;
+                min-height: 36px;
+                font-size: 0.85rem;
+            }
+
+            .hero-title {
+                font-size: 1.25rem;
+                gap: 8px;
+            }
+
+            .hero-title .emoji {
+                font-size: 2rem;
+            }
+
+            .hero-description {
+                font-size: 0.9rem;
+                padding: 14px;
+            }
+
+            .school-card {
+                padding: 14px;
+            }
+
+            .school-name {
+                font-size: 1rem;
+            }
+
+            .school-score {
+                font-size: 1.5rem;
+            }
+
+            .result-container {
+                padding: 18px;
+            }
+
+            .insights {
+                padding: 14px;
+            }
+
+            .insight-title {
+                font-size: 1rem;
+            }
+
+            .buttons {
+                padding: 10px 12px;
+                padding-bottom: max(10px, env(safe-area-inset-bottom));
+                gap: 8px;
+            }
+
+            .btn-prev, .btn-next {
+                padding: 14px 8px;
+                font-size: 0.9rem;
+                min-height: 44px;
+            }
+
+            .restart-btn {
+                padding: 14px 24px;
+                font-size: 1rem;
+            }
+
+            footer {
+                font-size: 0.75rem;
+                padding: 12px;
+            }
+        }
+
+        /* ── Очень маленькие экраны (≤380px) ── */
+        @media (max-width: 380px) {
+            .container {
+                padding-bottom: 85px;
+            }
+
+            h1 {
+                font-size: 1.15rem;
+            }
+
+            .logo {
+                width: 36px !important;
+                height: 36px !important;
+            }
+
+            .question-text {
+                font-size: 1rem;
+            }
+
+            .option {
+                padding: 10px 12px;
+                font-size: 0.85rem;
+                gap: 8px;
+            }
+
+            .option-letter {
+                min-width: 32px;
+                width: 32px;
+                height: 32px;
+                min-height: 32px;
+                font-size: 0.8rem;
+            }
+
+            .hero-title {
+                font-size: 1.1rem;
+            }
+
+            .buttons {
+                padding: 8px 10px;
+                gap: 6px;
+            }
+
+            .btn-prev, .btn-next {
+                padding: 12px 6px;
+                font-size: 0.85rem;
             }
         }
     </style>
@@ -367,6 +629,9 @@
     <link rel="icon" href="images/sigil-new-64x64.jpg" type="image/jpeg" sizes="64x64">
     <link rel="apple-touch-icon" href="images/sigil-new-64x64.jpg">
     <meta name="theme-color" content="#8b0000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Создай героя">
 </head>
 <body>
     <div class="container">
@@ -762,7 +1027,7 @@
         function restartTest() {
             currentQuestion = 0;
             answers = Array(questions.length).fill(null);
-            scores = { "К": 0, "П": 0, "Г": 0, "Э": 0 };
+            scores = { "К": 0, "П": 0, "Г": 0, "Э": 0, "Н": 0 };
             
             // Сбрасываем UI
             document.querySelectorAll('.question-card').forEach(card => {
