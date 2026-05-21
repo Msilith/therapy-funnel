@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>DNS Setup — therapyvoid.com</title>
+<style>
+body{font-family:system-ui;max-width:600px;margin:60px auto;padding:20px;background:#111;color:#eee}
+h1{color:#f6821f}
+button{display:block;width:100%;margin:12px 0;padding:16px;font-size:1.2rem;border:none;border-radius:8px;background:#f6821f;color:#111;cursor:pointer;font-weight:bold}
+button:disabled{opacity:0.5}
+.log{background:#222;padding:16px;border-radius:8px;margin-top:20px;font-family:monospace;font-size:0.85rem;white-space:pre-wrap;max-height:400px;overflow-y:auto}
+.ok{color:#5f5}
+.err{color:#f55}
+</style></head>
+<body>
+<h1>🌐 therapyvoid.com — DNS Setup</h1>
+<p>Ты должен быть <b>залогинен в Cloudflare</b> в этом браузере.</p>
+<button onclick="setupDNS()">🚀 Настроить DNS</button>
+<div class="log" id="log"></div>
+
+<script>
+const ZONE = 'bcff43d62203eea01fc5d9bafe3d7304';
+const BASE = 'https://api.cloudflare.com/client/v4';
+const logEl = document.getElementById('log');
+
+function log(msg, cls='') {
+    const div = document.createElement('div');
+    div.className = cls;
+    div.textContent = msg;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+}
+
+async function call(method, path, body) {
+    const opts = { method, headers: {'Content-Type':'application/json'}, credentials:'include' };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(`${BASE}/zones/${ZONE}/${path}`, opts);
+    return res.json();
+}
+
+async function setupDNS() {
+    log('🔍 Получаю текущие DNS-записи...');
+    
+    // Get existing records
+    const existing = await call('GET', 'dns_records');
+    if (!existing.success) {
+        log('❌ Ошибка: ' + JSON.stringify(existing.errors), 'err');
+        log('⚠️ Ты залогинен в Cloudflare? Открой dash.cloudflare.com в соседней вкладке.', 'err');
+        return;
+    }
+    
+    // Delete old records for @, www, api
+    for (const rec of existing.result) {
+        if (['@','www','api'].includes(rec.name.replace('.therapyvoid.com',''))) {
+            log(`🗑  Удаляю ${rec.name} (${rec.type})...`);
+            const del = await call('DELETE', `dns_records/${rec.id}`);
+            if (del.success) log('   ✅ Удалено', 'ok');
+        }
+    }
+    
+    // Create new records
+    const records = [
+        {type:'CNAME', name:'@', content:'msilith.github.io', proxied:true},
+        {type:'CNAME', name:'www', content:'msilith.github.io', proxied:true},
+        {type:'CNAME', name:'api', content:'therapy-funnel.onrender.com', proxied:false}
+    ];
+    
+    for (const rec of records) {
+        log(`➕ Создаю ${rec.name}.therapyvoid.com → ${rec.content}...`);
+        const res = await call('POST', 'dns_records', rec);
+        if (res.success) {
+            log(`   ✅ Готово (${res.result.id?.slice(0,8)}...)`, 'ok');
+        } else {
+            log(`   ❌ ${JSON.stringify(res.errors)}`, 'err');
+        }
+    }
+    
+    log('\n🎉 ГОТОВО! DNS настроен. GitHub Pages + API будут работать через 1-2 минуты.');
+    log('🌍 https://therapyvoid.com');
+}
+</script>
+</body>
+</html>
