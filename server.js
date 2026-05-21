@@ -81,8 +81,7 @@ async function initDB() {
 }
 
 initDB().catch(err => {
-  console.error('DB init error:', err);
-  process.exit(1);
+  console.error('DB init error:', err.message, '- running without database');
 });
 
 // ─── Гештальт-терапевт: системный промпт ───
