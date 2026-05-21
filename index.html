@@ -435,6 +435,9 @@
 
             lastResultData = { scores: { ...scores }, hero: hero.title, schoolCode: winningSchool };
 
+            // Save to localStorage so chat.html can pick up the mode
+            localStorage.setItem('tf_lastResult', JSON.stringify(lastResultData));
+
             const sortedSchools = Object.entries(scores)
                 .sort((a, b) => b[1] - a[1])
                 .map(([code, score]) => ({ ...loc.schools[code], code, score }));
