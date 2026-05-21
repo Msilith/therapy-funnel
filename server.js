@@ -12,6 +12,28 @@ const JWT_SECRET = process.env.JWT_SECRET || 'therapy-funnel-dev-secret-change-m
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-ba29207a867645c3845a8ec3f1a4c431';
 const DEEPSEEK_BASE = 'https://api.deepseek.com/v1';
 
+// ─── Rate Limiter ───
+const rateLimit = new Map();
+function rateLimiter(maxRequests, windowMs) {
+  return (req, res, next) => {
+    const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const now = Date.now();
+    if (!rateLimit.has(ip)) rateLimit.set(ip, []);
+    const timestamps = rateLimit.get(ip).filter(ts => now - ts < windowMs);
+    if (timestamps.length >= maxRequests) {
+      return res.status(429).json({ error: 'Слишком много запросов. Подождите минуту.' });
+    }
+    timestamps.push(now);
+    rateLimit.set(ip, timestamps);
+    next();
+  };
+}
+
+// Email validation
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -110,10 +132,13 @@ function optionalAuth(req, res, next) {
 }
 
 // ─── Auth Routes ───
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', rateLimiter(5, 60000), (req, res) => {
   const { email, password } = req.body;
   if (!email || !password || password.length < 4) {
     return res.status(400).json({ error: 'Email и пароль (мин 4 символа) обязательны' });
+  }
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Некорректный формат email' });
   }
 
   const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
@@ -132,7 +157,7 @@ app.post('/api/auth/register', (req, res) => {
   res.status(201).json({ token, user });
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', rateLimiter(10, 60000), (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email и пароль обязательны' });
@@ -167,7 +192,7 @@ app.get('/api/auth/me', authMiddleware, (req, res) => {
 });
 
 // ─── Chat Route (AI-терапевт) ───
-app.post('/api/chat', authMiddleware, async (req, res) => {
+app.post('/api/chat', authMiddleware, rateLimiter(30, 60000), async (req, res) => {
   const { message, history } = req.body;
   if (!message) return res.status(400).json({ error: 'Сообщение обязательно' });
 
