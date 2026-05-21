@@ -55,7 +55,7 @@ async function initDB() {
         email TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
         tier TEXT DEFAULT 'free',
-        trial_sessions_left INTEGER DEFAULT 3,
+        trial_sessions_left INTEGER DEFAULT 6,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
@@ -164,7 +164,7 @@ app.post('/api/auth/register', rateLimiter(5, 60000), async (req, res) => {
       [email, hash]
     );
 
-    const user = { id: result.rows[0].id, email, tier: 'free', trialSessionsLeft: 3 };
+    const user = { id: result.rows[0].id, email, tier: 'free', trialSessionsLeft: 6 };
     const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({ token, user });
@@ -241,7 +241,7 @@ app.post('/api/chat', authMiddleware, rateLimiter(30, 60000), async (req, res) =
         return res.status(402).json({
           error: 'Пробные сессии закончились',
           code: 'TRIAL_EXHAUSTED',
-          message: 'Вы использовали все 3 пробные сессии. Чтобы продолжить, обновите тариф до Pro.'
+          message: 'Вы использовали все 6 пробных сообщений. Чтобы продолжить, обновите тариф до Pro.'
         });
       }
       model = 'deepseek-v4-flash';

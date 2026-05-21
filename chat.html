@@ -163,62 +163,75 @@
 
     <!-- Header -->
     <div class="chat-header">
-        <button class="back-btn" onclick="window.location.href='home.html'" title="Назад">←</button>
+        <button class="back-btn" onclick="window.location.href='home.html'" title="Back">←</button>
         <div class="avatar">🌿</div>
         <div class="info">
-            <div class="name">AI Гештальт-терапевт</div>
+            <div class="name" id="headerName">AI Guide</div>
             <div class="status" id="modelStatus">DeepSeek V3</div>
         </div>
         <span class="tier-badge tier-free" id="tierBadge">Free</span>
     </div>
 
     <!-- Upgrade banner -->
-    <div class="upgrade-banner" id="upgradeBanner">
-        🔥 Пробные сессии закончились. Pro-тариф с DeepSeek V4 Pro — скоро!
-    </div>
+    <div class="upgrade-banner" id="upgradeBanner"></div>
 
     <!-- Content area -->
     <div id="contentArea" style="flex:1; display:flex; flex-direction:column; overflow:hidden;"></div>
 
     <!-- Footer -->
     <div style="text-align:center;padding:4px 0;font-size:0.7rem;color:#aaa;background:white;">
-        <a href="tos.html" style="color:#aaa;text-decoration:none;">Условия использования</a>
+        <a href="tos.html" style="color:#aaa;text-decoration:none;" id="footerTos">Terms</a>
         &nbsp;·&nbsp;
-        <a href="privacy.html" style="color:#aaa;text-decoration:none;">Конфиденциальность</a>
+        <a href="privacy.html" style="color:#aaa;text-decoration:none;" id="footerPrivacy">Privacy</a>
     </div>
 
     <script>
-        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        // ─── i18n ───
+        let chatLoc = null;
+        const CHAT_API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? '' : 'https://therapy-funnel.onrender.com';
+
+        function ct(path, repl) {
+            let val = chatLoc;
+            for (const p of path.split('.')) { if (val == null) return path; val = val[p]; }
+            if (typeof val !== 'string') return path;
+            if (repl) { for (const [k,v] of Object.entries(repl)) val = val.replace(new RegExp(`\\{${k}\\}`,'g'), v); }
+            return val;
+        }
+
+        async function loadChatLocale() {
+            const l = localStorage.getItem('tf_lang') || (navigator.language.startsWith('ru') ? 'ru' : 'en');
+            try {
+                const r = await fetch(`locales/${l}.json`);
+                const d = await r.json();
+                chatLoc = d.chat;
+                document.title = ct('title');
+                document.getElementById('headerName').textContent = ct('headerName');
+                document.getElementById('modelStatus').textContent = ct('modelDefault');
+                document.getElementById('backBtn').title = ct('backTitle');
+                document.getElementById('footerTos').textContent = ct('tos');
+                document.getElementById('footerPrivacy').textContent = ct('privacy');
+            } catch(e) {}
+        }
 
         let messages = [];
         let user = null;
         let trialLeft = null;
 
-        // Проверяем авторизацию
         function checkAuth() {
             const token = localStorage.getItem('tf_token');
             const userData = localStorage.getItem('tf_user');
             if (!token || !userData) return false;
-
             try {
                 user = JSON.parse(userData);
-                // Проверяем актуальность через /api/auth/me
-                fetch(`${API_BASE}/api/auth/me`, {
+                fetch(`${CHAT_API_BASE}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(r => r.json()).then(data => {
-                    if (data.error) {
-                        logout();
-                    } else {
-                        user = data;
-                        trialLeft = data.trialSessionsLeft;
-                        updateUI();
-                    }
+                    if (data.error) { logout(); }
+                    else { user = data; trialLeft = data.trialSessionsLeft; updateUI(); }
                 }).catch(() => {});
                 return true;
-            } catch {
-                return false;
-            }
+            } catch { return false; }
         }
 
         function logout() {
@@ -230,53 +243,50 @@
 
         function updateUI() {
             if (!user) return;
-
-            // Tier badge
             const badge = document.getElementById('tierBadge');
+            const status = document.getElementById('modelStatus');
             if (user.tier === 'pro') {
-                badge.textContent = 'Pro';
+                badge.textContent = ct('tierPro');
                 badge.className = 'tier-badge tier-pro';
-                document.getElementById('modelStatus').textContent = 'DeepSeek V4 Pro';
+                status.textContent = ct('modelPro');
             } else {
-                badge.textContent = 'Free';
+                badge.textContent = ct('tierFree');
                 badge.className = 'tier-badge tier-free';
                 const left = trialLeft !== null ? trialLeft : user.trialSessionsLeft;
-                document.getElementById('modelStatus').textContent = `DeepSeek V3 · Сессий: ${left ?? '?'}`;
+                status.textContent = `${ct('modelDefault')} · ${ct('sessionsLeft')}: ${left ?? '?'}`;
             }
-
             if (trialLeft === 0 && user.tier !== 'pro') {
+                document.getElementById('upgradeBanner').textContent = ct('trialExhausted');
                 document.getElementById('upgradeBanner').classList.add('show');
             }
         }
 
         function renderChat() {
             const contentArea = document.getElementById('contentArea');
-
             if (!user) {
                 contentArea.innerHTML = `
                     <div class="login-prompt">
                         <div class="emoji">🌿</div>
-                        <h2>AI Гештальт-терапевт</h2>
-                        <p>Войдите, чтобы начать сессию.<br>3 пробных сессии бесплатно.</p>
-                        <a href="auth.html?redirect=chat" class="btn">Войти / Зарегистрироваться</a>
+                        <h2>${ct('loginTitle')}</h2>
+                        <p>${ct('loginText')}</p>
+                        <a href="auth.html?redirect=chat" class="btn">${ct('loginBtn')}</a>
                     </div>`;
                 return;
             }
-
             if (messages.length === 0) {
+                const left = trialLeft ?? user.trialSessionsLeft;
+                const freeBadge = user.tier === 'pro' ? `Pro · ${ct('modelPro')}` : ct('freeBadge', {left});
                 contentArea.innerHTML = `
                     <div class="chat-messages" id="chatMessages">
                         <div class="empty-state">
                             <div class="emoji">🌿</div>
-                            <h3>Добро пожаловать</h3>
-                            <p>Я AI-гештальт-терапевт. Что привело вас сегодня? Как вы себя чувствуете прямо сейчас?</p>
-                            <p style="font-size:0.75rem; color:#aaa; margin-top:10px;">
-                                ${user.tier === 'pro' ? 'Pro-тариф · DeepSeek V4 Pro' : `Free · Осталось сессий: ${trialLeft ?? user.trialSessionsLeft}`}
-                            </p>
+                            <h3>${ct('welcomeTitle')}</h3>
+                            <p>${ct('welcomeText')}</p>
+                            <p style="font-size:0.75rem; color:#aaa; margin-top:10px;">${freeBadge}</p>
                         </div>
                     </div>
                     <div class="chat-input-wrap">
-                        <textarea id="chatInput" rows="1" placeholder="Напишите сообщение..." onkeydown="handleKey(event)"></textarea>
+                        <textarea id="chatInput" rows="1" placeholder="${ct('inputPlaceholder')}" onkeydown="handleKey(event)"></textarea>
                         <button class="send-btn" onclick="sendMessage()" id="sendBtn">↑</button>
                     </div>`;
             } else {
@@ -285,16 +295,12 @@
                         ${renderMessages()}
                     </div>
                     <div class="chat-input-wrap">
-                        <textarea id="chatInput" rows="1" placeholder="Напишите сообщение..." onkeydown="handleKey(event)"></textarea>
+                        <textarea id="chatInput" rows="1" placeholder="${ct('inputPlaceholder')}" onkeydown="handleKey(event)"></textarea>
                         <button class="send-btn" onclick="sendMessage()" id="sendBtn">↑</button>
                     </div>`;
             }
-
-            // Скролл вниз
             const msgContainer = document.getElementById('chatMessages');
             if (msgContainer) msgContainer.scrollTop = msgContainer.scrollHeight;
-
-            // Авто-ресize textarea
             const input = document.getElementById('chatInput');
             if (input) {
                 input.addEventListener('input', () => {
@@ -306,9 +312,7 @@
 
         function renderMessages() {
             return messages.map(m => {
-                if (m.role === 'system') {
-                    return `<div class="msg system">${escapeHtml(m.content)}</div>`;
-                }
+                if (m.role === 'system') return `<div class="msg system">${escapeHtml(m.content)}</div>`;
                 const cls = m.role === 'user' ? 'user' : 'ai';
                 return `<div class="msg ${cls}">${escapeHtml(m.content)}</div>`;
             }).join('');
@@ -321,61 +325,42 @@
         }
 
         function handleKey(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
         }
 
         async function sendMessage() {
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
             if (!text) return;
-
             const token = localStorage.getItem('tf_token');
             if (!token) { logout(); renderChat(); return; }
-
-            // Блокируем отправку
             input.value = '';
             input.style.height = 'auto';
             document.getElementById('sendBtn').disabled = true;
-
-            // Показываем сообщение пользователя
             const userMsg = { role: 'user', content: text };
             messages.push(userMsg);
             renderChat();
-
-            // Показываем печатание
             const msgContainer = document.getElementById('chatMessages');
             const typingEl = document.createElement('div');
             typingEl.className = 'msg ai typing';
             typingEl.innerHTML = '<span>●</span><span>●</span><span>●</span>';
             msgContainer.appendChild(typingEl);
             msgContainer.scrollTop = msgContainer.scrollHeight;
-
             try {
-                // Готовим историю без последнего сообщения
                 const history = messages.slice(0, -1).filter(m => m.role !== 'system');
-
-                const res = await fetch(`${API_BASE}/api/chat`, {
+                const res = await fetch(`${CHAT_API_BASE}/api/chat`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ message: text, history })
                 });
-
                 typingEl.remove();
-
                 const data = await res.json();
-
                 if (!res.ok) {
                     if (data.code === 'TRIAL_EXHAUSTED') {
                         trialLeft = 0;
-                        messages.push({ role: 'system', content: '💬 Пробные сессии закончились. Pro-тариф с DeepSeek V4 Pro — скоро!' });
+                        messages.push({ role: 'system', content: ct('trialExhausted') });
                     } else {
-                        messages.push({ role: 'system', content: `⚠️ ${data.error || 'Ошибка сервера'}` });
+                        messages.push({ role: 'system', content: `⚠️ ${data.error || ct('errorServer')}` });
                     }
                 } else {
                     messages.push({ role: 'assistant', content: data.reply });
@@ -383,25 +368,21 @@
                         trialLeft = data.trialSessionsLeft;
                     }
                 }
-
                 updateUI();
                 renderChat();
             } catch (err) {
                 typingEl.remove();
-                messages.push({ role: 'system', content: '⚠️ Ошибка соединения. Проверьте интернет.' });
+                messages.push({ role: 'system', content: ct('errorConnection') });
                 renderChat();
             }
-
             document.getElementById('sendBtn').disabled = false;
             document.getElementById('chatInput').focus();
         }
 
-        // Инициализация
-        if (checkAuth()) {
-            renderChat();
-        } else {
-            renderChat();
-        }
+        // Init
+        loadChatLocale().then(() => {
+            if (checkAuth()) { renderChat(); } else { renderChat(); }
+        });
     </script>
 </body>
 </html>

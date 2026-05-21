@@ -446,7 +446,7 @@
     "whatNext": "What's next?",
     "save": "💾 Save Result",
     "chat": "🌿 Trial Chat with AI Guide",
-    "freeHint": "3 free conversations after registration"
+    "freeHint": "6 free messages after registration"
   },
   "footer": {
     "disclaimer": "This quiz is a self-exploration tool, not a professional diagnosis. It can help you orient yourself, but it does not replace working with a specialist.",
@@ -459,5 +459,27 @@
     "savedAnon": "✅ Result saved anonymously. Register to link it to your account.",
     "error": "⚠️ Save error",
     "serverUnavailable": "⚠️ Server unavailable. Try again later."
+  },
+  "chat": {
+    "title": "AI Guide — Therapy Void",
+    "headerName": "AI Guide",
+    "modelDefault": "DeepSeek V3",
+    "modelPro": "DeepSeek V4 Pro",
+    "tierFree": "Free",
+    "tierPro": "Pro",
+    "welcomeTitle": "Welcome",
+    "welcomeText": "I'm your AI guide. What brings you here today? How are you feeling right now?",
+    "loginTitle": "AI Guide",
+    "loginText": "Sign in to start a conversation. 6 trial messages free.",
+    "loginBtn": "Sign In / Register",
+    "inputPlaceholder": "Type a message...",
+    "sessionsLeft": "Sessions left",
+    "trialExhausted": "💬 Trial conversations exhausted. Pro tier with DeepSeek V4 Pro — coming soon!",
+    "errorServer": "⚠️ Server error",
+    "errorConnection": "⚠️ Connection error. Check your internet.",
+    "backTitle": "Back",
+    "tos": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "freeBadge": "Free · Sessions left: {left}"
   }
 }
