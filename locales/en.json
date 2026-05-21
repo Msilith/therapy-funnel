@@ -1,11 +1,17 @@
 {
   "lang": "en",
   "site": {
-    "title": "✸ Create Your Hero — Therapy Match Quiz"
+    "title": "✸ Create Your Hero — Find Your Path"
+  },
+  "nav": {
+    "home": "Home",
+    "test": "Quiz",
+    "chat": "AI Chat",
+    "wiki": "Methods"
   },
   "header": {
     "heading": "Create Your Hero",
-    "subtitle": "Ten questions — and you'll discover which therapy school fits you. Plus a character portrait of the one who lives inside you.",
+    "subtitle": "Ten questions — and you'll discover which approach to self-discovery fits you best.",
     "progress": "Question {current} of {total}"
   },
   "buttons": {
@@ -18,131 +24,141 @@
     {
       "text": "When you're upset, what do you usually do first?",
       "options": [
-        "I tune into my body — where exactly I feel heaviness, tension, or emptiness.",
-        "I ask myself: \"What does this moment tell me about my life values?\"",
-        "I analyze what past situations might have triggered this reaction.",
-        "I make a list of possible actions and pick the most rational one.",
-        "I do something distracting — go for a walk, talk to a friend, make some tea."
+        {"text": "I tune into my body — where exactly I feel heaviness, tension, or emptiness.", "school": "G"},
+        {"text": "I ask myself: \"What does this moment tell me about my life values?\"", "school": "E"},
+        {"text": "I analyze what past situations might have triggered this reaction.", "school": "P"},
+        {"text": "I make a list of possible actions and pick the most rational one.", "school": "C"},
+        {"text": "I do something distracting — go for a walk, talk to a friend, make some tea.", "school": "S"}
+      ]
+    },
+    {
+      "text": "In difficult times, what gives you the most strength?",
+      "options": [
+        {"text": "A sense that this trial has meaning, even if I can't see it yet.", "school": "X"},
+        {"text": "Hope for relief and trust that everything is in the hands of a higher power.", "school": "I"},
+        {"text": "The understanding that suffering is part of the human experience, and I'm not alone.", "school": "E"},
+        {"text": "Body-based practices — breathing, movement, grounding.", "school": "G"},
+        {"text": "A concrete action plan for the coming days.", "school": "C"}
       ]
     },
     {
       "text": "How do you usually handle conflict with someone close?",
       "options": [
-        "I focus on what I'm feeling right now and try to express it.",
-        "I try to understand the deeper reasons behind the conflict — what's really going on beneath the words.",
-        "I look for concrete agreements and steps that will improve the situation.",
-        "I reflect on what this conflict says about our freedom and responsibility toward each other.",
-        "I try to smooth things over quickly and get back to normal."
+        {"text": "I focus on what I'm feeling right now and try to express it.", "school": "G"},
+        {"text": "I try to understand the deeper reasons behind the conflict — what's really going on beneath the words.", "school": "P"},
+        {"text": "I look for concrete agreements and steps that will improve the situation.", "school": "C"},
+        {"text": "I reflect on forgiveness and what matters more — being right or preserving peace.", "school": "X"},
+        {"text": "I reflect on what this conflict says about our freedom and responsibility toward each other.", "school": "E"}
       ]
     },
     {
       "text": "How do you relate to your dreams?",
       "options": [
-        "Sometimes I write down the vivid ones — they often have a lot of bodily sensations.",
-        "I see them as reflections of unconscious processes, sometimes I try to interpret them.",
-        "If a dream repeats, I look for patterns and possible connections to ongoing tasks.",
-        "I'm drawn to dreams about death, loss, and choice — they feel especially meaningful.",
-        "Dreams are just dreams. I rarely remember them and don't attach much significance."
+        {"text": "Sometimes I write down the vivid ones — they often have a lot of bodily sensations.", "school": "G"},
+        {"text": "I see them as reflections of unconscious processes, sometimes I try to interpret them.", "school": "P"},
+        {"text": "If a dream repeats, I look for patterns and possible connections to ongoing tasks.", "school": "C"},
+        {"text": "I'm drawn to dreams about death, loss, and choice — they feel especially meaningful.", "school": "E"},
+        {"text": "Dreams are just dreams. I rarely remember them and don't attach much significance.", "school": "S"}
       ]
     },
     {
       "text": "When you're angry, how exactly does it feel in your body?",
       "options": [
-        "Physically: fists clench, jaw tightens, heat in the chest.",
-        "Anger often comes mixed with other feelings — it's hard to isolate it.",
-        "First comes a thought about injustice, and only then a physical reaction.",
-        "I feel anger pressing against the question: \"What am I agreeing to that I don't want?\"",
-        "I get angry, but I let it go pretty quickly — I don't let emotions linger."
+        {"text": "Physically: fists clench, jaw tightens, heat in the chest.", "school": "G"},
+        {"text": "Anger often comes mixed with other feelings — it's hard to isolate it.", "school": "P"},
+        {"text": "First comes a thought about injustice, and only then a physical reaction.", "school": "C"},
+        {"text": "I feel anger pressing against the question of patience — when to hold back and when to speak.", "school": "I"},
+        {"text": "I feel anger pressing against the question: \"What am I agreeing to that I don't want?\"", "school": "E"}
+      ]
+    },
+    {
+      "text": "How do you make important life decisions?",
+      "options": [
+        {"text": "I listen to my inner compass — what feels right on a sensory level.", "school": "G"},
+        {"text": "I look for signs, answers in sacred texts or in prayerful reflection.", "school": "X"},
+        {"text": "I consult those I trust and seek wisdom in community.", "school": "I"},
+        {"text": "I weigh pros and cons, make a list of arguments.", "school": "C"},
+        {"text": "I trust the flow of life — if the decision is right, things will fall into place.", "school": "S"}
       ]
     },
     {
       "text": "What does \"being in control of a situation\" mean to you?",
       "options": [
-        "The ability to stay in touch with my feelings, no matter what's happening.",
-        "Understanding the deeper motives — mine and others' — and taking them into account.",
-        "Having a clear plan and the tools to solve whatever problems come up.",
-        "Realizing that total control is impossible, and accepting that impossibility.",
-        "Doing what depends on me, and not wasting energy on the rest."
+        {"text": "The ability to stay in touch with my feelings, no matter what's happening.", "school": "G"},
+        {"text": "Understanding the deeper motives — mine and others' — and taking them into account.", "school": "P"},
+        {"text": "Having a clear plan and the tools to solve whatever problems come up.", "school": "C"},
+        {"text": "Realizing that total control is impossible, and accepting that impossibility.", "school": "E"},
+        {"text": "Doing what depends on me, and entrusting the rest.", "school": "I"}
       ]
     },
     {
       "text": "When do you feel safest?",
       "options": [
-        "When I can be completely honest, without fear of judgment.",
-        "When I understand the hidden reasons behind what's going on around me.",
-        "When there's a clear algorithm of action and predictable outcomes.",
-        "When I accept the fundamental insecurity of existence as a given.",
-        "In ordinary everyday situations, among trusted people."
+        {"text": "When I can be completely honest, without fear of judgment.", "school": "G"},
+        {"text": "When I understand the hidden reasons behind what's going on around me.", "school": "P"},
+        {"text": "When there's a clear algorithm of action and predictable outcomes.", "school": "C"},
+        {"text": "When I feel part of something greater than myself.", "school": "X"},
+        {"text": "In ordinary everyday situations, among trusted people.", "school": "S"}
       ]
     },
     {
       "text": "If you feel \"stuck\" in some area of life, what do you do?",
       "options": [
-        "I pay attention to what feelings and bodily sensations accompany this state.",
-        "I look for possible unconscious benefits of staying in this spot.",
-        "I break the big problem into small steps and start with the simplest one.",
-        "I ask myself what meaning this stuckness might hold for my path.",
-        "I give myself time, switch to other things — often the situation resolves itself."
+        {"text": "I pay attention to what feelings and bodily sensations accompany this state.", "school": "G"},
+        {"text": "I look for possible unconscious benefits of staying in this spot.", "school": "P"},
+        {"text": "I break the big problem into small steps and start with the simplest one.", "school": "C"},
+        {"text": "I ask myself what meaning this stuckness might hold for my path.", "school": "E"},
+        {"text": "I pray or reflect — sometimes answers come not from the mind, but from silence.", "school": "I"}
       ]
     },
     {
       "text": "Which type of inner questions resonates most with you?",
       "options": [
-        "\"What am I feeling right now? Where in my body does it resonate?\"",
-        "\"Why do I react this way? What from childhood might have influenced it?\"",
-        "\"What needs to be done? What's the next step?\"",
-        "\"Why am I doing this? What meaning does it hold for me?\"",
-        "\"Is everything okay? Will I manage?\" — and I usually answer myself \"yes.\""
-      ]
-    },
-    {
-      "text": "When a friend shares a problem with you, how do you usually respond?",
-      "options": [
-        "I just try to be there, listen without interrupting, giving them space to talk.",
-        "I try to help them see the root of the problem, perhaps going back to the past.",
-        "I suggest concrete options for action or solution algorithms.",
-        "I ask questions about what meaning this crisis might hold for them.",
-        "I sympathize, share a similar experience if I have one, and try to cheer them up."
-      ]
-    },
-    {
-      "text": "How do you feel about unexpected changes to your plans?",
-      "options": [
-        "I notice how my body reacts to the news — whether it tenses up or relaxes.",
-        "I'm curious about what hidden reasons might have caused these changes.",
-        "I quickly rebuild my action plan and put together a new one.",
-        "I take it as a reminder of life's unpredictability.",
-        "I accept it as a given and figure out how to adapt with minimal loss."
+        {"text": "\"What am I feeling right now? Where in my body does it resonate?\"", "school": "G"},
+        {"text": "\"Why do I react this way? What from childhood might have influenced it?\"", "school": "P"},
+        {"text": "\"What needs to be done? What's the next step?\"", "school": "C"},
+        {"text": "\"Why am I doing this? What meaning does it hold for me?\"", "school": "E"},
+        {"text": "\"Is this right before God? Am I straying from the path?\"", "school": "X"}
       ]
     }
   ],
   "schools": {
-    "К": { "name": "Cognitive Behavioral Therapy (CBT)", "emoji": "🧠" },
-    "П": { "name": "Psychoanalysis", "emoji": "🕵️" },
-    "Г": { "name": "Gestalt Therapy", "emoji": "🌿" },
-    "Э": { "name": "Existential Therapy", "emoji": "🌌" },
-    "Н": { "name": "Self-Guided / No Therapy Needed", "emoji": "🚶‍♂️" }
+    "C": { "name": "Cognitive Behavioral Approach", "emoji": "🧠", "short": "CBT" },
+    "P": { "name": "Psychoanalytic Approach", "emoji": "🕵️", "short": "Psychoanalysis" },
+    "G": { "name": "Gestalt Approach", "emoji": "🌿", "short": "Gestalt" },
+    "E": { "name": "Existential Approach", "emoji": "🌌", "short": "Existential" },
+    "S": { "name": "Self-Guided Path", "emoji": "🚶‍♂️", "short": "Self-Help" },
+    "X": { "name": "Christian Guidance", "emoji": "🕯️", "short": "Christian" },
+    "I": { "name": "Islamic Guidance", "emoji": "🌙", "short": "Islamic" }
   },
   "heroes": {
-    "К": {
+    "C": {
       "title": "THE STRATEGIST",
       "description": "You think clearly and step by step. For you, problems are tasks with solutions, and you know how to tackle them. Plans and algorithms are your element."
     },
-    "П": {
+    "P": {
       "title": "SHADOW ARCHAEOLOGIST",
       "description": "You seek depth and cause. You're curious about where things come from, and you're willing to dig into the past to understand the present. Unconscious scripts aren't an abstraction to you — they're a field for exploration."
     },
-    "Г": {
+    "G": {
       "title": "THE FEELING BLADE",
       "description": "You trust your body and the moment. You care about what's happening right now, and you know how to listen to your sensations. Pausing and feeling is your greatest resource."
     },
-    "Э": {
+    "E": {
       "title": "WANDERER WITHOUT A MAP",
       "description": "You ask the big questions. Meaning, freedom, solitude — these aren't abstractions to you, they're what you deal with every day. You're not looking for ready-made answers — you're looking for your own path."
     },
-    "Н": {
+    "S": {
       "title": "THE SELF-GUIDED WAYFARER",
-      "description": "You already have your own resources and ways of coping. Therapy may not be necessary — perhaps books, practices, or support from loved ones are enough. You're already moving along your own path."
+      "description": "You already have your own resources and ways of coping. Perhaps books, practices, or support from loved ones are enough. You're already moving along your own path."
+    },
+    "X": {
+      "title": "PILGRIM OF LIGHT",
+      "description": "You seek grounding in faith and see meaning in trials. For you, self-discovery is inseparable from your relationship with God. Scripture and prayer are your guides, and community is your support on the journey."
+    },
+    "I": {
+      "title": "SEEKER OF THE STRAIGHT PATH",
+      "description": "You seek balance between trust in the Almighty and your own effort. Patience, gratitude, and justice aren't just words — they're daily practice. Spiritual reflection is your source of direction."
     }
   },
   "results": {
@@ -152,29 +168,30 @@
     "recommendationTitle": "Recommendation for you:",
     "howToUseTitle": "How to use this result:",
     "howToUseList": [
-      "Look for a therapist who works in the recommended approach",
+      "Look for a specialist or guide who works in an approach close to you",
       "Pay attention to which questions and techniques resonate with you",
       "Use the strengths of your profile in everyday life",
-      "Remember: there is no perfect approach — what matters most is your trust in the therapist"
+      "Remember: there is no perfect approach — what matters most is trust"
     ],
     "recommendations": {
-      "К": "Cognitive Behavioral Therapy (CBT) may suit you well. It provides concrete tools for working with thoughts and behaviors. You'll be able to set clear goals and track your progress.",
-      "П": "Psychoanalytic therapy may resonate with you. You'll be able to explore the deeper causes of your experiences, understand unconscious scripts, and work with recurring patterns.",
-      "Г": "Gestalt therapy will help you develop contact with your body and the present moment. You'll learn to complete unfinished situations, express feelings, and find resources in the here and now.",
-      "Э": "Existential therapy offers a space to explore fundamental questions: meaning, freedom, solitude, death. You'll be able to find your own answers about what it means to live consciously.",
-      "Н": "You may not need therapy right now. You already have your own resources and ways of coping. If you ever want to deepen your self-knowledge — you can always come back to this question."
+      "C": "Cognitive Behavioral Therapy may suit you well. It provides concrete tools for working with thoughts and behaviors. You'll be able to set clear goals and track your progress.",
+      "P": "Psychoanalytic therapy may resonate with you. You'll be able to explore the deeper causes of your experiences, understand unconscious scripts, and work with recurring patterns.",
+      "G": "Gestalt therapy will help you develop contact with your body and the present moment. You'll learn to complete unfinished situations, express feelings, and find resources in the here and now.",
+      "E": "Existential therapy offers a space to explore fundamental questions: meaning, freedom, solitude, death. You'll be able to find your own answers.",
+      "S": "You may not need formal therapy right now. You already have your own resources and ways of coping. If you ever want to deepen your self-knowledge — you can always come back.",
+      "X": "Christian spiritual guidance may be your path. A conversation with a priest, spiritual director, or Christian counselor can help you connect self-discovery with faith, and Scripture with daily life.",
+      "I": "Islamic spiritual guidance may be your direction. A conversation with an imam or Muslim counselor can help you find balance between tawakkul and personal effort, and deepen your connection with the Almighty."
     },
-    "integrativeHint": " Also consider an integrative approach combining {school1} with elements of {school2} — this may give you a fuller picture."
+    "integrativeHint": " Also consider combining {school1} with elements of {school2} — this may give you a fuller picture."
   },
   "cta": {
     "whatNext": "What's next?",
     "save": "💾 Save Result",
-    "chat": "🌿 Trial Session with AI Therapist",
-    "wiki": "📚 Learn More About the Method",
-    "freeHint": "3 free sessions after registration"
+    "chat": "🌿 Trial Chat with AI Guide",
+    "freeHint": "3 free conversations after registration"
   },
   "footer": {
-    "disclaimer": "This quiz is a self-exploration game, not a professional diagnosis. It can help you orient yourself, but it does not replace working with a real psychotherapist.",
+    "disclaimer": "This quiz is a self-exploration tool, not a professional diagnosis. It can help you orient yourself, but it does not replace working with a specialist.",
     "helpText": "If you're struggling, having suicidal thoughts, or feel like you can't cope — please reach out to a professional. Call 988 (US) or your local crisis line.",
     "tos": "Terms of Service",
     "privacy": "Privacy Policy"
@@ -184,12 +201,5 @@
     "savedAnon": "✅ Result saved anonymously. Register to link it to your account.",
     "error": "⚠️ Save error",
     "serverUnavailable": "⚠️ Server unavailable. Try again later."
-  },
-  "wiki": {
-    "К": "https://en.wikipedia.org/wiki/Cognitive_behavioral_therapy",
-    "П": "https://en.wikipedia.org/wiki/Psychoanalysis",
-    "Г": "https://en.wikipedia.org/wiki/Gestalt_therapy",
-    "Э": "https://en.wikipedia.org/wiki/Existential_therapy",
-    "Н": "https://en.wikipedia.org/wiki/Psychotherapy"
   }
 }

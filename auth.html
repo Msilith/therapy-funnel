@@ -14,9 +14,19 @@
         }
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh; display: flex; align-items: center; justify-content: center;
-            padding: 20px; color: #343a40;
+            min-height: 100vh; display: flex; flex-direction: column;
+            padding: 0; color: #343a40;
+            padding-bottom: env(safe-area-inset-bottom,20px);
         }
+        /* Top Nav */
+        .topnav { background: white; border-bottom: 1px solid #e9ecef; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,0.04); flex-shrink: 0; }
+        .topnav-inner { max-width: 800px; margin: 0 auto; display: flex; align-items: center; gap: 4px; padding: 4px 12px; }
+        .topnav a { text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 0.9rem; color: #555; font-weight: 500; transition: all 0.2s; white-space: nowrap; }
+        .topnav a:hover { background: #f0f0f0; color: var(--secondary); }
+        .topnav a.active { background: var(--primary); color: white; }
+        .topnav .brand { font-weight: 700; color: #166088; margin-right: auto; font-size: 0.95rem; }
+        @media (max-width: 480px) { .topnav a { padding: 6px 10px; font-size: 0.8rem; } .topnav .brand { font-size: 0.85rem; } }
+        .page-center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .card {
             background: white; border-radius: 12px; padding: 40px;
             max-width: 420px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -66,6 +76,17 @@
     </style>
 </head>
 <body>
+    <!-- Top Navigation -->
+    <nav class="topnav">
+        <div class="topnav-inner">
+            <span class="brand">Therapy Void</span>
+            <a href="home.html">Главная</a>
+            <a href="index.html">Тест</a>
+            <a href="chat.html">AI-беседа</a>
+        </div>
+    </nav>
+
+    <div class="page-center">
     <div class="card">
         <h1>🔐 Therapy Funnel</h1>
         <p class="subtitle">Сохраняйте результаты и общайтесь с AI-терапевтом</p>
@@ -109,7 +130,7 @@
         </form>
 
         <div class="back-link">
-            <a href="index.html">← Вернуться к тесту</a>
+            <a href="home.html">← Вернуться на главную</a>
         </div>
         <div style="text-align:center;margin-top:8px;">
             <a href="tos.html" style="color:#aaa;text-decoration:none;font-size:0.8rem;">Условия использования</a>
@@ -117,6 +138,7 @@
             <a href="privacy.html" style="color:#aaa;text-decoration:none;font-size:0.8rem;">Конфиденциальность</a>
         </div>
     </div>
+    </div><!-- .page-center -->
 
     <script>
         // Определяем API URL

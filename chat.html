@@ -24,6 +24,15 @@
             color: var(--dark);
         }
 
+        /* Top Nav */
+        .topnav { background: white; border-bottom: 1px solid #e9ecef; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,0.04); flex-shrink: 0; }
+        .topnav-inner { max-width: 800px; margin: 0 auto; display: flex; align-items: center; gap: 4px; padding: 4px 12px; }
+        .topnav a { text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 0.9rem; color: #555; font-weight: 500; transition: all 0.2s; white-space: nowrap; }
+        .topnav a:hover { background: #f0f0f0; color: var(--secondary); }
+        .topnav a.active { background: var(--primary); color: white; }
+        .topnav .brand { font-weight: 700; color: var(--secondary); margin-right: auto; font-size: 0.95rem; }
+        @media (max-width: 480px) { .topnav a { padding: 6px 10px; font-size: 0.8rem; } .topnav .brand { font-size: 0.85rem; } }
+
         /* Header */
         .chat-header {
             background: white; padding: 14px 18px; display: flex;
@@ -142,9 +151,19 @@
     </style>
 </head>
 <body>
+    <!-- Top Navigation -->
+    <nav class="topnav">
+        <div class="topnav-inner">
+            <span class="brand">Therapy Void</span>
+            <a href="home.html">Главная</a>
+            <a href="index.html">Тест</a>
+            <a href="chat.html" class="active">AI-беседа</a>
+        </div>
+    </nav>
+
     <!-- Header -->
     <div class="chat-header">
-        <button class="back-btn" onclick="window.location.href='index.html'" title="Назад">←</button>
+        <button class="back-btn" onclick="window.location.href='home.html'" title="Назад">←</button>
         <div class="avatar">🌿</div>
         <div class="info">
             <div class="name">AI Гештальт-терапевт</div>
