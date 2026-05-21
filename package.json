@@ -27,7 +27,7 @@
   "bugs": {
     "url": "https://github.com/Akoilka/therapy-funnel/issues"
   },
-  "homepage": "https://akoilka.github.io/therapy-funnel",
+  "homepage": "https://msilith.github.io/therapy-funnel",
   "devDependencies": {
     "serve": "^14.0.0"
   },
