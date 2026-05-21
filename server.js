@@ -1,3 +1,4 @@
+// © 2025–2026 Ssilith. Proprietary. All rights reserved. Commercial use requires royalties. See LICENSE.
 const express = require('express');
 const cors = require('cors');
 const Database = require('better-sqlite3');

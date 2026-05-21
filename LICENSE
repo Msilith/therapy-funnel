@@ -1,21 +1,63 @@
-MIT License
+PROPRIETARY LICENSE — ALL RIGHTS RESERVED
 
-Copyright (c) 2025 Ssilith
+Copyright (c) 2025–2026 Ssilith (Mikhail S.)
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+ВСЕ ПРАВА ЗАЩИЩЕНЫ. ALL RIGHTS RESERVED.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+───────────────────────────────────────────────────────────
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Данное программное обеспечение и сопутствующая документация
+(далее — «Продукт») являются исключительной собственностью
+правообладателя. Никакая часть Продукта не может быть
+воспроизведена, скопирована, изменена, включена в другие
+проекты, распространена или использована каким-либо образом
+без предварительного письменного разрешения правообладателя.
+
+ЗАПРЕЩЕНО:
+
+  1. Любое коммерческое использование без лицензионного
+     соглашения с выплатой роялти правообладателю.
+
+  2. Копирование, распространение, модификация исходного кода
+     или его частей.
+
+  3. Создание производных продуктов (форков, клонов, white-label
+     решений) на основе данного Продукта.
+
+  4. Использование в составе коммерческих SaaS, платформ или
+     корпоративных продуктов.
+
+  5. Публикация, перепродажа, сублицензирование любой части
+     Продукта.
+
+  6. Удаление или изменение уведомлений об авторских правах.
+
+ЕДИНСТВЕННОЕ ИСКЛЮЧЕНИЕ:
+
+  Просмотр исходного кода на GitHub разрешён исключительно в
+  ознакомительных целях. Это не даёт права на использование,
+  копирование или распространение.
+
+ЛИЦЕНЗИОННЫЕ ОТЧИСЛЕНИЯ (РОЯЛТИ):
+
+  Любое коммерческое использование требует заключения отдельного
+  лицензионного соглашения с выплатой роялти. Условия обсуждаются
+  индивидуально с правообладателем.
+
+  Контакт для лицензирования: через Issues в репозитории
+  https://github.com/Msilith/therapy-funnel
+
+ОТКАЗ ОТ ГАРАНТИЙ:
+
+  Продукт предоставляется «как есть», без каких-либо явных или
+  подразумеваемых гарантий. Правообладатель не несёт ответственности
+  за любой ущерб, возникший в результате использования Продукта.
+
+НАРУШЕНИЕ УСЛОВИЙ:
+
+  Любое несанкционированное использование Продукта является
+  нарушением авторских прав и может повлечь юридические
+  последствия в соответствии с применимым законодательством.
+
+───────────────────────────────────────────────────────────
+© 2025–2026 Ssilith. All rights reserved.
