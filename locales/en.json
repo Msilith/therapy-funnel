@@ -24,112 +24,370 @@
     {
       "text": "When you're upset, what do you usually do first?",
       "options": [
-        {"text": "I tune into my body — where exactly I feel heaviness, tension, or emptiness.", "school": "G"},
-        {"text": "I ask myself: \"What does this moment tell me about my life values?\"", "school": "E"},
-        {"text": "I analyze what past situations might have triggered this reaction.", "school": "P"},
-        {"text": "I make a list of possible actions and pick the most rational one.", "school": "C"},
-        {"text": "I do something distracting — go for a walk, talk to a friend, make some tea.", "school": "S"}
+        {
+          "text": "I tune into my body — where exactly I feel heaviness, tension, or emptiness.",
+          "school": "G"
+        },
+        {
+          "text": "I ask myself: \"What does this moment tell me about my life values?\"",
+          "school": "E"
+        },
+        {
+          "text": "I analyze what past situations might have triggered this reaction.",
+          "school": "P"
+        },
+        {
+          "text": "I make a list of possible actions and pick the most rational one.",
+          "school": "C"
+        },
+        {
+          "text": "I do something distracting — go for a walk, talk to a friend, make some tea.",
+          "school": "S"
+        },
+        {
+          "text": "I pray or read Scripture — it restores my sense of grounding.",
+          "school": "X"
+        },
+        {
+          "text": "I reflect that everything is from the Almighty and ease follows hardship.",
+          "school": "I"
+        }
       ]
     },
     {
       "text": "In difficult times, what gives you the most strength?",
       "options": [
-        {"text": "A sense that this trial has meaning, even if I can't see it yet.", "school": "X"},
-        {"text": "Hope for relief and trust that everything is in the hands of a higher power.", "school": "I"},
-        {"text": "The understanding that suffering is part of the human experience, and I'm not alone.", "school": "E"},
-        {"text": "Body-based practices — breathing, movement, grounding.", "school": "G"},
-        {"text": "A concrete action plan for the coming days.", "school": "C"}
+        {
+          "text": "A sense that this trial has meaning, even if I can't see it yet.",
+          "school": "X"
+        },
+        {
+          "text": "Hope for relief and trust that everything is in the hands of a higher power.",
+          "school": "I"
+        },
+        {
+          "text": "The understanding that suffering is part of the human experience, and I'm not alone.",
+          "school": "E"
+        },
+        {
+          "text": "Body-based practices — breathing, movement, grounding.",
+          "school": "G"
+        },
+        {
+          "text": "A concrete action plan for the coming days.",
+          "school": "C"
+        },
+        {
+          "text": "I analyze which childhood patterns are being triggered in this situation.",
+          "school": "P"
+        },
+        {
+          "text": "I trust that things will work out — I live one day at a time.",
+          "school": "S"
+        }
       ]
     },
     {
       "text": "How do you usually handle conflict with someone close?",
       "options": [
-        {"text": "I focus on what I'm feeling right now and try to express it.", "school": "G"},
-        {"text": "I try to understand the deeper reasons behind the conflict — what's really going on beneath the words.", "school": "P"},
-        {"text": "I look for concrete agreements and steps that will improve the situation.", "school": "C"},
-        {"text": "I reflect on forgiveness and what matters more — being right or preserving peace.", "school": "X"},
-        {"text": "I reflect on what this conflict says about our freedom and responsibility toward each other.", "school": "E"}
+        {
+          "text": "I focus on what I'm feeling right now and try to express it.",
+          "school": "G"
+        },
+        {
+          "text": "I try to understand the deeper reasons behind the conflict — what's really going on beneath the words.",
+          "school": "P"
+        },
+        {
+          "text": "I look for concrete agreements and steps that will improve the situation.",
+          "school": "C"
+        },
+        {
+          "text": "I reflect on forgiveness and what matters more — being right or preserving peace.",
+          "school": "X"
+        },
+        {
+          "text": "I reflect on what this conflict says about our freedom and responsibility toward each other.",
+          "school": "E"
+        },
+        {
+          "text": "I trust that time and good deeds will smooth the tension.",
+          "school": "I"
+        },
+        {
+          "text": "I pause, switch to routine tasks — let emotions cool down.",
+          "school": "S"
+        }
       ]
     },
     {
       "text": "How do you relate to your dreams?",
       "options": [
-        {"text": "Sometimes I write down the vivid ones — they often have a lot of bodily sensations.", "school": "G"},
-        {"text": "I see them as reflections of unconscious processes, sometimes I try to interpret them.", "school": "P"},
-        {"text": "If a dream repeats, I look for patterns and possible connections to ongoing tasks.", "school": "C"},
-        {"text": "I'm drawn to dreams about death, loss, and choice — they feel especially meaningful.", "school": "E"},
-        {"text": "Dreams are just dreams. I rarely remember them and don't attach much significance.", "school": "S"}
+        {
+          "text": "Sometimes I write down the vivid ones — they often have a lot of bodily sensations.",
+          "school": "G"
+        },
+        {
+          "text": "I see them as reflections of unconscious processes, sometimes I try to interpret them.",
+          "school": "P"
+        },
+        {
+          "text": "If a dream repeats, I look for patterns and possible connections to ongoing tasks.",
+          "school": "C"
+        },
+        {
+          "text": "I'm drawn to dreams about death, loss, and choice — they feel especially meaningful.",
+          "school": "E"
+        },
+        {
+          "text": "Dreams are just dreams. I rarely remember them and don't attach much significance.",
+          "school": "S"
+        },
+        {
+          "text": "Sometimes dreams feel like a sign or an answer to prayer.",
+          "school": "X"
+        },
+        {
+          "text": "I see meaningful dreams as possible direction worth trusting.",
+          "school": "I"
+        }
       ]
     },
     {
       "text": "When you're angry, how exactly does it feel in your body?",
       "options": [
-        {"text": "Physically: fists clench, jaw tightens, heat in the chest.", "school": "G"},
-        {"text": "Anger often comes mixed with other feelings — it's hard to isolate it.", "school": "P"},
-        {"text": "First comes a thought about injustice, and only then a physical reaction.", "school": "C"},
-        {"text": "I feel anger pressing against the question of patience — when to hold back and when to speak.", "school": "I"},
-        {"text": "I feel anger pressing against the question: \"What am I agreeing to that I don't want?\"", "school": "E"}
+        {
+          "text": "Physically: fists clench, jaw tightens, heat in the chest.",
+          "school": "G"
+        },
+        {
+          "text": "Anger often comes mixed with other feelings — it's hard to isolate it.",
+          "school": "P"
+        },
+        {
+          "text": "First comes a thought about injustice, and only then a physical reaction.",
+          "school": "C"
+        },
+        {
+          "text": "I feel anger pressing against the question of patience — when to hold back and when to speak.",
+          "school": "I"
+        },
+        {
+          "text": "I feel anger pressing against the question: \"What am I agreeing to that I don't want?\"",
+          "school": "E"
+        },
+        {
+          "text": "I try to understand if I've crossed someone's boundary, and forgive myself.",
+          "school": "X"
+        },
+        {
+          "text": "I rarely get angry — I usually let it go before I even notice.",
+          "school": "S"
+        }
       ]
     },
     {
       "text": "How do you make important life decisions?",
       "options": [
-        {"text": "I listen to my inner compass — what feels right on a sensory level.", "school": "G"},
-        {"text": "I look for signs, answers in sacred texts or in prayerful reflection.", "school": "X"},
-        {"text": "I consult those I trust and seek wisdom in community.", "school": "I"},
-        {"text": "I weigh pros and cons, make a list of arguments.", "school": "C"},
-        {"text": "I trust the flow of life — if the decision is right, things will fall into place.", "school": "S"}
+        {
+          "text": "I listen to my inner compass — what feels right on a sensory level.",
+          "school": "G"
+        },
+        {
+          "text": "I look for signs, answers in sacred texts or in prayerful reflection.",
+          "school": "X"
+        },
+        {
+          "text": "I consult those I trust and seek wisdom in community.",
+          "school": "I"
+        },
+        {
+          "text": "I weigh pros and cons, make a list of arguments.",
+          "school": "C"
+        },
+        {
+          "text": "I trust the flow of life — if the decision is right, things will fall into place.",
+          "school": "S"
+        },
+        {
+          "text": "I explore my past decision-making patterns and their consequences.",
+          "school": "P"
+        },
+        {
+          "text": "I reflect on the finiteness of life and what truly matters.",
+          "school": "E"
+        }
       ]
     },
     {
       "text": "What does \"being in control of a situation\" mean to you?",
       "options": [
-        {"text": "The ability to stay in touch with my feelings, no matter what's happening.", "school": "G"},
-        {"text": "Understanding the deeper motives — mine and others' — and taking them into account.", "school": "P"},
-        {"text": "Having a clear plan and the tools to solve whatever problems come up.", "school": "C"},
-        {"text": "Realizing that total control is impossible, and accepting that impossibility.", "school": "E"},
-        {"text": "Doing what depends on me, and entrusting the rest.", "school": "I"}
+        {
+          "text": "The ability to stay in touch with my feelings, no matter what's happening.",
+          "school": "G"
+        },
+        {
+          "text": "Understanding the deeper motives — mine and others' — and taking them into account.",
+          "school": "P"
+        },
+        {
+          "text": "Having a clear plan and the tools to solve whatever problems come up.",
+          "school": "C"
+        },
+        {
+          "text": "Realizing that total control is impossible, and accepting that impossibility.",
+          "school": "E"
+        },
+        {
+          "text": "Doing what depends on me, and entrusting the rest.",
+          "school": "I"
+        },
+        {
+          "text": "I try not to stress — life will sort everything out on its own.",
+          "school": "S"
+        },
+        {
+          "text": "I pray for wisdom and trust that I will receive guidance.",
+          "school": "X"
+        }
       ]
     },
     {
       "text": "When do you feel safest?",
       "options": [
-        {"text": "When I can be completely honest, without fear of judgment.", "school": "G"},
-        {"text": "When I understand the hidden reasons behind what's going on around me.", "school": "P"},
-        {"text": "When there's a clear algorithm of action and predictable outcomes.", "school": "C"},
-        {"text": "When I feel part of something greater than myself.", "school": "X"},
-        {"text": "In ordinary everyday situations, among trusted people.", "school": "S"}
+        {
+          "text": "When I can be completely honest, without fear of judgment.",
+          "school": "G"
+        },
+        {
+          "text": "When I understand the hidden reasons behind what's going on around me.",
+          "school": "P"
+        },
+        {
+          "text": "When there's a clear algorithm of action and predictable outcomes.",
+          "school": "C"
+        },
+        {
+          "text": "When I feel part of something greater than myself.",
+          "school": "X"
+        },
+        {
+          "text": "In ordinary everyday situations, among trusted people.",
+          "school": "S"
+        },
+        {
+          "text": "When I accept that nothing is guaranteed — and that's okay.",
+          "school": "E"
+        },
+        {
+          "text": "Among fellow believers, when we share common values and support.",
+          "school": "I"
+        }
       ]
     },
     {
       "text": "If you feel \"stuck\" in some area of life, what do you do?",
       "options": [
-        {"text": "I pay attention to what feelings and bodily sensations accompany this state.", "school": "G"},
-        {"text": "I look for possible unconscious benefits of staying in this spot.", "school": "P"},
-        {"text": "I break the big problem into small steps and start with the simplest one.", "school": "C"},
-        {"text": "I ask myself what meaning this stuckness might hold for my path.", "school": "E"},
-        {"text": "I pray or reflect — sometimes answers come not from the mind, but from silence.", "school": "I"}
+        {
+          "text": "I pay attention to what feelings and bodily sensations accompany this state.",
+          "school": "G"
+        },
+        {
+          "text": "I look for possible unconscious benefits of staying in this spot.",
+          "school": "P"
+        },
+        {
+          "text": "I break the big problem into small steps and start with the simplest one.",
+          "school": "C"
+        },
+        {
+          "text": "I ask myself what meaning this stuckness might hold for my path.",
+          "school": "E"
+        },
+        {
+          "text": "I pray or reflect — sometimes answers come not from the mind, but from silence.",
+          "school": "I"
+        },
+        {
+          "text": "I trust that my time hasn't come yet — everything has its season.",
+          "school": "X"
+        },
+        {
+          "text": "I try to just relax and not pressure myself — sometimes it's better to let go.",
+          "school": "S"
+        }
       ]
     },
     {
       "text": "Which type of inner questions resonates most with you?",
       "options": [
-        {"text": "\"What am I feeling right now? Where in my body does it resonate?\"", "school": "G"},
-        {"text": "\"Why do I react this way? What from childhood might have influenced it?\"", "school": "P"},
-        {"text": "\"What needs to be done? What's the next step?\"", "school": "C"},
-        {"text": "\"Why am I doing this? What meaning does it hold for me?\"", "school": "E"},
-        {"text": "\"Is this right before God? Am I straying from the path?\"", "school": "X"}
+        {
+          "text": "\"What am I feeling right now? Where in my body does it resonate?\"",
+          "school": "G"
+        },
+        {
+          "text": "\"Why do I react this way? What from childhood might have influenced it?\"",
+          "school": "P"
+        },
+        {
+          "text": "\"What needs to be done? What's the next step?\"",
+          "school": "C"
+        },
+        {
+          "text": "\"Why am I doing this? What meaning does it hold for me?\"",
+          "school": "E"
+        },
+        {
+          "text": "\"Is this right before God? Am I straying from the path?\"",
+          "school": "X"
+        },
+        {
+          "text": "\"Is this pleasing to God? How can I stay grateful?\"",
+          "school": "I"
+        },
+        {
+          "text": "\"Am I doing everything right? Is it time for a change?\"",
+          "school": "S"
+        }
       ]
     }
   ],
   "schools": {
-    "C": { "name": "Cognitive Behavioral Approach", "emoji": "🧠", "short": "CBT" },
-    "P": { "name": "Psychoanalytic Approach", "emoji": "🕵️", "short": "Psychoanalysis" },
-    "G": { "name": "Gestalt Approach", "emoji": "🌿", "short": "Gestalt" },
-    "E": { "name": "Existential Approach", "emoji": "🌌", "short": "Existential" },
-    "S": { "name": "Self-Guided Path", "emoji": "🚶‍♂️", "short": "Self-Help" },
-    "X": { "name": "Christian Guidance", "emoji": "🕯️", "short": "Christian" },
-    "I": { "name": "Islamic Guidance", "emoji": "🌙", "short": "Islamic" }
+    "C": {
+      "name": "Cognitive Behavioral Approach",
+      "emoji": "🧠",
+      "short": "CBT"
+    },
+    "P": {
+      "name": "Psychoanalytic Approach",
+      "emoji": "🕵️",
+      "short": "Psychoanalysis"
+    },
+    "G": {
+      "name": "Gestalt Approach",
+      "emoji": "🌿",
+      "short": "Gestalt"
+    },
+    "E": {
+      "name": "Existential Approach",
+      "emoji": "🌌",
+      "short": "Existential"
+    },
+    "S": {
+      "name": "Self-Guided Path",
+      "emoji": "🚶‍♂️",
+      "short": "Self-Help"
+    },
+    "X": {
+      "name": "Christian Guidance",
+      "emoji": "🕯️",
+      "short": "Christian"
+    },
+    "I": {
+      "name": "Islamic Guidance",
+      "emoji": "🌙",
+      "short": "Islamic"
+    }
   },
   "heroes": {
     "C": {
