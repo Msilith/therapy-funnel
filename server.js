@@ -63,11 +63,25 @@ const GESTALT_PROMPT = `Ты — AI-терапевт, проводящий пс�
 - Говори на русском языке, если клиент говорит по-русски.
 - Будь краток: 2-5 предложений за ответ. Не читай лекций.
 
+ВАЖНО — ГРАНИЦЫ РОЛИ:
+Ты ТОЛЬКО психотерапевт. Если пользователь просит написать код, решить задачу, составить текст, перевести, объяснить техническую тему, дать бизнес-совет, или ЛЮБУЮ другую не-терапевтическую задачу — ответь строго: «Я здесь только для психотерапевтических бесед. Если у вас есть запрос, связанный с чувствами, переживаниями или отношениями, я рядом.» И остановись. Никаких исключений.
+
 Ты НЕ ДОЛЖЕН:
 - Давать интерпретации («У тебя детская травма»).
 - Вести в прошлое без запроса клиента.
 - Предлагать медицинские диагнозы или лекарства.
 - При признаках кризиса (суицидальные мысли, психоз) — скажи: «То, что ты описываешь, требует помощи живого специалиста. Пожалуйста, обратись к психотерапевту или в службу доверия (112 в России, 988 в США)».`;
+
+// ─── Классификатор: психология или нет ───
+const GUARD_PROMPT = `Ты — классификатор. Определи, относится ли сообщение пользователя к психотерапии, психологии, психическому здоровью, чувствам, эмоциям, отношениям или самоисследованию.
+
+Ответь ровно одним словом: YES или NO.
+
+YES — если сообщение о чувствах, переживаниях, настроении, отношениях, стрессе, тревоге, смысле жизни, самопознании, терапии, детстве, снах, конфликтах, телесных ощущениях, усталости, мотивации.
+
+NO — если сообщение просит написать код, решить задачу, перевести текст, дать бизнес-совет, техническую консультацию, математику, программирование, или любую не-психологическую задачу.
+
+Сообщение:`;
 
 // ─── JWT Middleware ───
 function authMiddleware(req, res, next) {
@@ -164,7 +178,8 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
   // Определяем модель и проверяем лимиты
   let model;
   if (user.tier === 'pro') {
-    model = 'deepseek-v4-pro';
+    // Pro: безлимитный V4-Flash (V4-Pro будет отдельным премиум-тиром позже)
+    model = 'deepseek-v4-flash';
   } else {
     if (user.trial_sessions_left <= 0) {
       return res.status(402).json({
@@ -173,10 +188,44 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
         message: 'Вы использовали все 3 пробные сессии. Чтобы продолжить, обновите тариф до Pro.'
       });
     }
-    model = 'deepseek-chat';
+    model = 'deepseek-v4-flash';
   }
 
-  // Строим сообщения для DeepSeek
+  // ─── Guard: проверяем, психологический ли запрос ───
+  try {
+    const guardRes = await fetch(`${DEEPSEEK_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-v4-flash',
+        messages: [
+          { role: 'system', content: GUARD_PROMPT },
+          { role: 'user', content: message }
+        ],
+        max_tokens: 3,
+        temperature: 0
+      })
+    });
+
+    if (guardRes.ok) {
+      const guardData = await guardRes.json();
+      const verdict = (guardData.choices?.[0]?.message?.content || '').trim().toUpperCase();
+      if (verdict === 'NO') {
+        return res.json({
+          reply: 'Я здесь только для психотерапевтических бесед. Если у вас есть запрос, связанный с чувствами, переживаниями или отношениями — я рядом.',
+          model,
+          rejected: true,
+          trialSessionsLeft: user.tier === 'free' ? user.trial_sessions_left : null
+        });
+      }
+    }
+    // Если guard не сработал (ошибка) — пропускаем, лучше false-negative чем блокировка
+  } catch (_) { /* guard failed, proceed anyway */ }
+
+  // ─── Основной запрос к терапевту ───
   const messages = [
     { role: 'system', content: GESTALT_PROMPT },
     ...(Array.isArray(history) ? history : []),
@@ -207,7 +256,7 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
     const data = await response.json();
     const reply = data.choices?.[0]?.message?.content || '...';
 
-    // Списываем пробную сессию для free-пользователей
+    // Списываем пробную сессию ТОЛЬКО для free-пользователей и только если не rejected
     if (user.tier === 'free') {
       db.prepare('UPDATE users SET trial_sessions_left = trial_sessions_left - 1 WHERE id = ?').run(user.id);
     }
@@ -265,6 +314,8 @@ app.get('/api/health', (req, res) => {
 // ─── Page Routes (clean URLs) ───
 app.get('/auth', (req, res) => res.sendFile(path.join(__dirname, 'auth.html')));
 app.get('/chat', (req, res) => res.sendFile(path.join(__dirname, 'chat.html')));
+app.get('/tos', (req, res) => res.sendFile(path.join(__dirname, 'tos.html')));
+app.get('/privacy', (req, res) => res.sendFile(path.join(__dirname, 'privacy.html')));
 
 // ─── Start ───
 app.listen(PORT, () => {
