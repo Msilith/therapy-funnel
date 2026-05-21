@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://therapy-funnel.onrender.com https://api.deepseek.com; img-src 'self' data:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.therapyvoid.com https://api.deepseek.com; img-src 'self' data:;">
     <title>✸ Создай своего героя — тест для подбора терапии</title>
     <style>
         * {
@@ -426,7 +426,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ── Планшеты и крупные телефоны (≤768px) ── */
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -537,7 +536,6 @@
             }
         }
 
-        /* ── Маленькие телефоны (≤480px) ── */
         @media (max-width: 480px) {
             body {
                 padding: 8px;
@@ -669,7 +667,6 @@
             }
         }
 
-        /* ── Очень маленькие экраны (≤380px) ── */
         @media (max-width: 380px) {
             .container {
                 padding-bottom: 85px;
@@ -716,8 +713,20 @@
                 font-size: 0.85rem;
             }
         }
+
+        /* Language switcher */
+        .lang-switcher {
+            color: #888;
+            background: transparent;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-top: 8px;
+        }
     </style>
-    <!-- Favicons сигила Люцифера -->
+    <!-- Favicons -->
     <link rel="icon" href="images/sigil-new-16x16.jpg" type="image/jpeg" sizes="16x16">
     <link rel="icon" href="images/sigil-new-32x32.jpg" type="image/jpeg" sizes="32x32">
     <link rel="icon" href="images/sigil-new-48x48.jpg" type="image/jpeg" sizes="48x48">
@@ -726,26 +735,26 @@
     <meta name="theme-color" content="#8b0000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Создай героя">
+    <meta name="apple-mobile-web-app-title" content="Create Your Hero">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><img src="images/sigil-new-72x72.jpg" class="logo" alt="Sigil"> Создай своего героя</h1>
-            <p class="subtitle">Десять вопросов — и ты узнаешь, какая школа терапии тебе подходит. Плюс описание персонажа, который живёт внутри тебя.</p>
+            <h1><img src="images/sigil-new-72x72.jpg" class="logo" alt="Sigil"> <span data-i18n="heading">Создай своего героя</span></h1>
+            <p class="subtitle" data-i18n="subtitle">Десять вопросов — и ты узнаешь, какая школа терапии тебе подходит. Плюс описание персонажа, который живёт внутри тебя.</p>
             
             <div class="progress-container">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
-            <div id="progressText">Вопрос 1 из 10</div>
+            <div id="progressText" data-i18n="progress" data-i18n-args='{"current":1,"total":10}'>Вопрос 1 из 10</div>
         </header>
 
         <!-- Вопросы будут сгенерированы JavaScript -->
         <div id="questionsContainer"></div>
 
         <div class="buttons">
-            <button class="btn-prev" id="prevBtn" onclick="prevQuestion()" disabled>← Назад</button>
-            <button class="btn-next" id="nextBtn" onclick="nextQuestion()">Далее →</button>
+            <button class="btn-prev" id="prevBtn" onclick="prevQuestion()" disabled data-i18n="prev">← Назад</button>
+            <button class="btn-next" id="nextBtn" onclick="nextQuestion()" data-i18n="next">Далее →</button>
         </div>
 
         <div class="result-container" id="resultContainer">
@@ -753,168 +762,124 @@
         </div>
 
         <footer>
-            <p>Этот тест — игра для самоисследования, а не профессиональная диагностика. Он может помочь сориентироваться, но не заменит работу с настоящим психотерапевтом.</p>
-            <p>Если вам тяжело, если появляются суицидальные мысли, если кажется, что вы не справляетесь, — пожалуйста, обратитесь к специалисту.</p>
+            <p data-i18n="disclaimer">Этот тест — игра для самоисследования, а не профессиональная диагностика. Он может помочь сориентироваться, но не заменит работу с настоящим психотерапевтом.</p>
+            <p data-i18n="helpText">Если вам тяжело, если появляются суицидальные мысли, если кажется, что вы не справляетесь, — пожалуйста, обратитесь к специалисту.</p>
             <p style="margin-top:12px;">
-                <a href="tos.html" style="color:#888;text-decoration:none;">Условия использования</a>
+                <a href="tos.html" style="color:#888;text-decoration:none;" data-i18n="tos">Условия использования</a>
                 &nbsp;·&nbsp;
-                <a href="privacy.html" style="color:#888;text-decoration:none;">Конфиденциальность</a>
+                <a href="privacy.html" style="color:#888;text-decoration:none;" data-i18n="privacy">Конфиденциальность</a>
             </p>
-            <button class="restart-btn" onclick="restartTest()">Пройти тест заново</button>
+            <select id="langSwitcher" class="lang-switcher" onchange="switchLang(this.value)">
+                <option value="ru">🇷🇺 RU</option>
+                <option value="en">🇬🇧 EN</option>
+            </select>
+            <button class="restart-btn" onclick="restartTest()" data-i18n="restart">Пройти тест заново</button>
         </footer>
     </div>
 
     <script>
-                // Вопросы в случайном порядке (школы зашифрованы)
-        const questions = [
-            {
-                text: "Когда вы расстроены, что обычно делаете в первую очередь?",
-                options: [
-                    { text: "Прислушиваюсь к ощущениям в теле — где именно чувствую тяжесть, напряжение, пустоту.", school: "Г" },
-                    { text: "Задаюсь вопросом: «Что этот момент говорит мне о моих жизненных ценностях?»", school: "Э" },
-                    { text: "Анализирую, какие прошлые ситуации могли вызвать такую реакцию.", school: "П" },
-                    { text: "Составляю список возможных действий и выбираю самое рациональное.", school: "К" },
-                    { text: "Делаю что-то отвлекающее — прогуляться, поговорить с другом, чай выпить.", school: "Н" }
-                ]
-            },
-            {
-                text: "Как вы обычно ведёте себя в конфликте с близким человеком?",
-                options: [
-                    { text: "Сосредотачиваюсь на том, что чувствую прямо сейчас, и стараюсь это выразить.", school: "Г" },
-                    { text: "Стараюсь понять глубинные причины конфликта — что на самом деле стоит за словами.", school: "П" },
-                    { text: "Ищу конкретные договорённости и шаги, которые помогут улучшить ситуацию.", school: "К" },
-                    { text: "Размышляю о том, что этот конфликт говорит о нашей свободе и ответственности друг перед другом.", school: "Э" },
-                    { text: "Стараюсь быстро сгладить углы и вернуться к обычному общению.", school: "Н" }
-                ]
-            },
-            {
-                text: "Как вы относитесь к своим сновидениям?",
-                options: [
-                    { text: "Иногда записываю особенно яркие — в них бывает много телесных ощущений.", school: "Г" },
-                    { text: "Вижу в них отражение бессознательных процессов, иногда пытаюсь интерпретировать.", school: "П" },
-                    { text: "Если сон повторяется, ищу закономерности и возможные связи с текущими задачами.", school: "К" },
-                    { text: "Интересуюсь снами о смерти, потерях, выборе — они кажутся особенно значимыми.", school: "Э" },
-                    { text: "Сны — просто сны, редко их запоминаю и не придаю особого значения.", school: "Н" }
-                ]
-            },
-            {
-                text: "Когда вы злитесь, как именно это ощущается в теле?",
-                options: [
-                    { text: "Физически: сжимаются кулаки, напрягается челюсть, жар в груди.", school: "Г" },
-                    { text: "Злость часто приходит вместе с другими чувствами — трудно выделить её отдельно.", school: "П" },
-                    { text: "Сначала возникает мысль о несправедливости, а уже потом телесная реакция.", school: "К" },
-                    { text: "Чувствую, как злость упирается в вопрос: «На что я соглашаюсь, чего не хочу?»", school: "Э" },
-                    { text: "Злюсь, но довольно быстро отпускаю — не даю эмоции задерживаться надолго.", school: "Н" }
-                ]
-            },
-            {
-                text: "Что для вас означает «иметь контроль над ситуацией»?",
-                options: [
-                    { text: "Возможность оставаться в контакте со своими чувствами, что бы ни происходило.", school: "Г" },
-                    { text: "Понимать глубинные мотивы — своих и чужих — и учитывать их.", school: "П" },
-                    { text: "Иметь чёткий план и инструменты для решения возникающих проблем.", school: "К" },
-                    { text: "Осознавать, что полного контроля нет, и принимать эту невозможность.", school: "Э" },
-                    { text: "Делать то, что от меня зависит, а на остальное не тратить силы.", school: "Н" }
-                ]
-            },
-            {
-                text: "В какие моменты вы чувствуете себя в наибольшей безопасности?",
-                options: [
-                    { text: "Когда могу быть полностью искренним, не боясь осуждения.", school: "Г" },
-                    { text: "Когда понимаю скрытые причины происходящего вокруг.", school: "П" },
-                    { text: "Когда есть ясный алгоритм действий и предсказуемый результат.", school: "К" },
-                    { text: "Когда принимаю фундаментальную небезопасность бытия как данность.", school: "Э" },
-                    { text: "В обычных бытовых ситуациях, среди проверенных людей.", school: "Н" }
-                ]
-            },
-            {
-                text: "Если вы чувствуете, что «застряли» в какой-то сфере жизни, что предпринимаете?",
-                options: [
-                    { text: "Обращаю внимание на то, какие чувства и телесные ощущения сопровождают это состояние.", school: "Г" },
-                    { text: "Ищу возможные бессознательные выгоды от того, чтобы оставаться в этой точке.", school: "П" },
-                    { text: "Разбиваю большую задачу на маленькие шаги и начинаю с самого простого.", school: "К" },
-                    { text: "Спрашиваю себя, какой смысл может быть в этом застревании для моего пути.", school: "Э" },
-                    { text: "Даю себе время, переключаюсь на другие дела — часто ситуация разрешается сама.", school: "Н" }
-                ]
-            },
-            {
-                text: "Какой тип внутренних вопросов вам ближе всего?",
-                options: [
-                    { text: "«Что я сейчас ощущаю? Где в теле это отзывается?»", school: "Г" },
-                    { text: "«Почему я именно так реагирую? Что из детства могло повлиять?»", school: "П" },
-                    { text: "«Что нужно сделать? Какой следующий шаг?»", school: "К" },
-                    { text: "«Зачем я это делаю? Какой смысл в этом для меня?»", school: "Э" },
-                    { text: "«Всё ли в порядке? Справлюсь ли?» — и обычно отвечаю себе «да».", school: "Н" }
-                ]
-            },
-            {
-                text: "Когда друг делится с вами проблемой, как вы обычно реагируете?",
-                options: [
-                    { text: "Стараюсь просто быть рядом, слушать, не перебивая, давая возможность выговориться.", school: "Г" },
-                    { text: "Пытаюсь помочь увидеть корень проблемы, возможно, уходящий в прошлое.", school: "П" },
-                    { text: "Предлагаю конкретные варианты действий или алгоритмы решения.", school: "К" },
-                    { text: "Задаю вопросы о том, какой смысл этот кризис может иметь для друга.", school: "Э" },
-                    { text: "Сочувствую, делюсь похожим опытом, если он был, стараюсь подбодрить.", school: "Н" }
-                ]
-            },
-            {
-                text: "Как вы относитесь к неожиданным изменениям в планах?",
-                options: [
-                    { text: "Замечаю, как тело реагирует на новость — напрягается или, наоборот, расслабляется.", school: "Г" },
-                    { text: "Интересуюсь, какие скрытые причины могли привести к этим изменениям.", school: "П" },
-                    { text: "Быстро перестраиваю схему действий, составляю новый план.", school: "К" },
-                    { text: "Воспринимаю как напоминание о непредсказуемости жизни.", school: "Э" },
-                    { text: "Принимаю как данность и ищу, как адаптироваться с минимальными потерями.", school: "Н" }
-                ]
+        // ─── i18n Engine ───
+        const SCHOOL_ORDER = ['Г', 'Э', 'П', 'К', 'Н'];
+        const Q_COUNT = 10;
+        let loc = null;
+        let lang = 'ru';
+        let questions = [];
+        let schools = {};
+        let heroProfiles = {};
+
+        function t(path, replacements) {
+            let val = loc;
+            const parts = path.split('.');
+            for (const p of parts) {
+                if (val == null) return path;
+                val = val[p];
             }
-        ];
-
-        // Расшифровка школ
-        const schools = {
-            "К": { name: "Когнитивно-поведенческая терапия (КПТ)", color: "#4a6fa5", emoji: "🧠" },
-            "П": { name: "Психоанализ", color: "#9b59b6", emoji: "🕵️" },
-            "Г": { name: "Гештальт-терапия", color: "#2ecc71", emoji: "🌿" },
-            "Э": { name: "Экзистенциальная терапия", color: "#e74c3c", emoji: "🌌" },
-            "Н": { name: "Самостоятельный / Терапия не нужна", color: "#f39c12", emoji: "🚶‍♂️" }
-        };
-
-        const heroProfiles = {
-            "К": {
-                title: "СТРАТЕГ",
-                description: "Вы мыслите ясно и пошагово. Для вас проблемы — это задачи, у которых есть решение, и вы знаете, как к нему подступиться. Планы и алгоритмы — ваша стихия."
-            },
-            "П": {
-                title: "АРХЕОЛОГ ТЕНЕЙ",
-                description: "Вы ищете глубину и причину. Вам интересно, откуда что берётся, и вы готовы копать в прошлое, чтобы понять настоящее. Бессознательные сценарии для вас — не абстракция, а поле для исследования."
-            },
-            "Г": {
-                title: "ЧУВСТВУЮЩИЙ КЛИНОК",
-                description: "Вы доверяете телу и моменту. Вам важно, что происходит прямо сейчас, и вы умеете слушать свои ощущения. Остановиться и почувствовать — ваш главный ресурс."
-            },
-            "Э": {
-                title: "СТРАННИК БЕЗ КАРТЫ",
-                description: "Вы задаёте большие вопросы. Смысл, свобода, одиночество — для вас это не абстракции, а то, с чем приходится иметь дело каждый день. Вы не ищете готовых ответов — вы ищете свой путь."
-            },
-            "Н": {
-                title: "САМОСТОЯТЕЛЬНЫЙ ПУТНИК",
-                description: "Вы уже имеете свои ресурсы и способы справляться. Терапия может быть не обязательной — возможно, вам достаточно книг, практик или поддержки близких. Вы и так движетесь своим путём."
+            if (typeof val !== 'string') return path;
+            if (replacements) {
+                for (const [k, v] of Object.entries(replacements)) {
+                    val = val.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+                }
             }
-        };
+            return val;
+        }
 
-        // Состояние теста
+        async function loadLocale(l) {
+            try {
+                const res = await fetch(`locales/${l}.json`);
+                loc = await res.json();
+                lang = l;
+                document.documentElement.lang = l;
+                localStorage.setItem('tf_lang', l);
+
+                // Build data from locale
+                schools = {};
+                heroProfiles = {};
+                questions = [];
+                const schoolCodes = ['К', 'П', 'Г', 'Э', 'Н'];
+                for (const code of schoolCodes) {
+                    schools[code] = loc.schools[code];
+                    heroProfiles[code] = loc.heroes[code];
+                }
+                questions = loc.questions.map((q, qi) => ({
+                    text: q.text,
+                    options: SCHOOL_ORDER.map((school, oi) => ({
+                        text: q.options[oi],
+                        school: school
+                    }))
+                }));
+
+                document.title = loc.site.title;
+                updateStaticText();
+                document.getElementById('langSwitcher').value = l;
+            } catch (e) {
+                console.error('Failed to load locale:', l, e);
+            }
+        }
+
+        function updateStaticText() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                let args = null;
+                if (el.dataset.i18nArgs) {
+                    try { args = JSON.parse(el.dataset.i18nArgs); } catch {}
+                }
+                const val = t(key, args);
+                if (val && val !== key) el.textContent = val;
+            });
+        }
+
+        function switchLang(l) {
+            loadLocale(l).then(() => {
+                if (document.getElementById('resultContainer').style.display !== 'none') {
+                    showResults();
+                } else {
+                    initTestUI();
+                }
+            });
+        }
+
+        function detectLang() {
+            const url = new URL(window.location.href);
+            if (url.searchParams.has('lang')) return url.searchParams.get('lang');
+            const stored = localStorage.getItem('tf_lang');
+            if (stored) return stored;
+            const browser = navigator.language || navigator.userLanguage || '';
+            return browser.startsWith('ru') ? 'ru' : 'en';
+        }
+
+        // ─── Состояние теста ───
         let currentQuestion = 0;
-        let answers = Array(questions.length).fill(null);
+        let answers = Array(Q_COUNT).fill(null);
         let scores = { "К": 0, "П": 0, "Г": 0, "Э": 0, "Н": 0 };
 
-        // Инициализация
-        function initTest() {
+        function initTestUI() {
             const container = document.getElementById('questionsContainer');
             container.innerHTML = '';
-            
             questions.forEach((question, index) => {
+                const qNum = t('header.progress', { current: index + 1, total: Q_COUNT });
                 const questionHTML = `
                     <div class="question-card ${index === 0 ? 'active' : ''}" id="question${index}">
-                        <div class="question-number">Вопрос ${index + 1} из 10</div>
+                        <div class="question-number">${qNum}</div>
                         <div class="question-text">${question.text}</div>
                         <div class="options">
                             ${question.options.map((option, optIndex) => `
@@ -928,28 +893,16 @@
                 `;
                 container.innerHTML += questionHTML;
             });
-            
             updateProgress();
         }
 
         function selectOption(questionIndex, optionIndex) {
-            // Сброс выбора для этого вопроса
             questions[questionIndex].options.forEach((_, i) => {
-                const optionEl = document.getElementById(`q${questionIndex}o${i}`);
-                optionEl.classList.remove('selected');
+                document.getElementById(`q${questionIndex}o${i}`).classList.remove('selected');
             });
-            
-            // Выбор нового варианта
-            const selectedEl = document.getElementById(`q${questionIndex}o${optionIndex}`);
-            selectedEl.classList.add('selected');
-            
+            document.getElementById(`q${questionIndex}o${optionIndex}`).classList.add('selected');
             answers[questionIndex] = optionIndex;
-            
-            // Обновление кнопки "Далее"
-            const nextBtn = document.getElementById('nextBtn');
-            nextBtn.disabled = false;
-            
-            // Автоматический переход, если это текущий вопрос
+            document.getElementById('nextBtn').disabled = false;
             if (questionIndex === currentQuestion) {
                 setTimeout(() => nextQuestion(), 300);
             }
@@ -957,22 +910,17 @@
 
         function nextQuestion() {
             if (answers[currentQuestion] === null) return;
-            
             if (currentQuestion < questions.length - 1) {
                 document.getElementById(`question${currentQuestion}`).classList.remove('active');
                 currentQuestion++;
                 document.getElementById(`question${currentQuestion}`).classList.add('active');
-                
                 const nextBtn = document.getElementById('nextBtn');
                 const prevBtn = document.getElementById('prevBtn');
-                
                 nextBtn.disabled = answers[currentQuestion] === null;
                 prevBtn.disabled = false;
-                
                 if (currentQuestion === questions.length - 1) {
-                    nextBtn.textContent = 'Узнать результат →';
+                    nextBtn.textContent = t('buttons.result');
                 }
-                
                 updateProgress();
             } else {
                 calculateResults();
@@ -985,17 +933,13 @@
                 document.getElementById(`question${currentQuestion}`).classList.remove('active');
                 currentQuestion--;
                 document.getElementById(`question${currentQuestion}`).classList.add('active');
-                
                 const nextBtn = document.getElementById('nextBtn');
                 const prevBtn = document.getElementById('prevBtn');
-                
                 nextBtn.disabled = answers[currentQuestion] === null;
                 prevBtn.disabled = currentQuestion === 0;
-                
                 if (currentQuestion < questions.length - 1) {
-                    nextBtn.textContent = 'Далее →';
+                    nextBtn.textContent = t('buttons.next');
                 }
-                
                 updateProgress();
             }
         }
@@ -1003,14 +947,11 @@
         function updateProgress() {
             const progress = ((currentQuestion + 1) / questions.length) * 100;
             document.getElementById('progressBar').style.width = `${progress}%`;
-            document.getElementById('progressText').textContent = `Вопрос ${currentQuestion + 1} из 10`;
+            document.getElementById('progressText').textContent = t('header.progress', { current: currentQuestion + 1, total: Q_COUNT });
         }
 
         function calculateResults() {
-            // Сброс счётчиков
             scores = { "К": 0, "П": 0, "Г": 0, "Э": 0, "Н": 0 };
-            
-            // Подсчёт баллов
             answers.forEach((answerIndex, questionIndex) => {
                 if (answerIndex !== null) {
                     const school = questions[questionIndex].options[answerIndex].school;
@@ -1020,169 +961,93 @@
         }
 
         function showResults() {
-            // Находим победившую школу
             let maxScore = 0;
             let winningSchool = "К";
-            
             for (const [school, score] of Object.entries(scores)) {
-                if (score > maxScore) {
-                    maxScore = score;
-                    winningSchool = school;
-                }
+                if (score > maxScore) { maxScore = score; winningSchool = school; }
             }
-            
-            // Скрываем вопросы и кнопки
-            document.querySelectorAll('.question-card').forEach(card => {
-                card.style.display = 'none';
-            });
-            document.querySelector('.buttons').style.display = 'none';
-            
-            // Генерируем результаты
-            const resultContainer = document.getElementById('resultContainer');
-            
-            // Описание героя
-            const hero = heroProfiles[winningSchool];
 
-            // Сохраняем для кнопки «Сохранить результат»
-            lastResultData = {
-                scores: {...scores},
-                hero: hero.title,
-                schoolCode: winningSchool
-            };
-            
-            // Сортируем школы по баллам
+            document.querySelectorAll('.question-card').forEach(c => c.style.display = 'none');
+            document.querySelector('.buttons').style.display = 'none';
+
+            const rc = document.getElementById('resultContainer');
+            const hero = loc.heroes[winningSchool];
+
+            lastResultData = { scores: { ...scores }, hero: hero.title, schoolCode: winningSchool };
+
             const sortedSchools = Object.entries(scores)
                 .sort((a, b) => b[1] - a[1])
-                .map(([schoolCode, score]) => ({
-                    ...schools[schoolCode],
-                    code: schoolCode,
-                    score
-                }));
-            
-            // Генерация HTML результатов
-            resultContainer.innerHTML = `
+                .map(([code, score]) => ({ ...loc.schools[code], code, score }));
+
+            const heroTitle = t('results.yourHero', { title: hero.title });
+            const recText = t(`results.recommendations.${winningSchool}`);
+            let fullRec = recText;
+            const second = sortedSchools[1];
+            if (second && second.score >= sortedSchools[0].score - 1) {
+                fullRec += ' ' + t('results.integrativeHint', {
+                    school1: sortedSchools[0].name.toLowerCase(),
+                    school2: second.name.toLowerCase()
+                });
+            }
+
+            const howToList = loc.results.howToUseList.map(i => `<li style="margin-bottom:10px;">${i}</li>`).join('');
+
+            rc.innerHTML = `
                 <div class="hero-title">
-                    <span class="emoji">${schools[winningSchool].emoji}</span>
-                    ВАШ ГЕРОЙ: ${hero.title}
+                    <span class="emoji">${loc.schools[winningSchool].emoji}</span>
+                    ${heroTitle}
                 </div>
-                
-                <div class="hero-description">
-                    ${hero.description}
-                </div>
-                
-                <h2 style="color: var(--secondary); margin: 30px 0 20px;">📊 Ваши результаты:</h2>
-                
+                <div class="hero-description">${hero.description}</div>
+                <h2 style="color: var(--secondary); margin: 30px 0 20px;">${t('results.yourResults')}</h2>
                 <div class="schools-grid">
-                    ${sortedSchools.map((school, index) => `
-                        <div class="school-card ${school.code === winningSchool ? 'highlight' : ''}">
-                            <div class="school-name">${school.name}</div>
-                            <div class="school-score">${school.score}</div>
-                            <div style="font-size: 0.9rem; color: #666;">баллов</div>
+                    ${sortedSchools.map(s => `
+                        <div class="school-card ${s.code === winningSchool ? 'highlight' : ''}">
+                            <div class="school-name">${s.name}</div>
+                            <div class="school-score">${s.score}</div>
+                            <div style="font-size:0.9rem;color:#666;">${t('results.points')}</div>
                         </div>
                     `).join('')}
                 </div>
-                
                 <div class="insights">
-                    <div class="insight-title">
-                        <span style="font-size: 1.5rem;">💡</span>
-                        Рекомендация для вас:
-                    </div>
-                    <p style="font-size: 1.1rem; line-height: 1.6;">
-                        ${getRecommendation(winningSchool, sortedSchools)}
-                    </p>
+                    <div class="insight-title"><span style="font-size:1.5rem;">💡</span> ${t('results.recommendationTitle')}</div>
+                    <p style="font-size:1.1rem;line-height:1.6;">${fullRec}</p>
                 </div>
-                
                 <div class="insights">
-                    <div class="insight-title">
-                        <span style="font-size: 1.5rem;">🎯</span>
-                        Как использовать этот результат:
-                    </div>
-                    <ul style="padding-left: 20px; font-size: 1.1rem; line-height: 1.6;">
-                        <li style="margin-bottom: 10px;">Ищите терапевта, работающего в рекомендованном подходе</li>
-                        <li style="margin-bottom: 10px;">Обращайте внимание на то, какие вопросы и техники вам откликаются</li>
-                        <li style="margin-bottom: 10px;">Используйте сильные стороны вашего профиля в повседневной жизни</li>
-                        <li>Помните: идеального подхода не существует — важнее всего ваше доверие к терапевту</li>
-                    </ul>
+                    <div class="insight-title"><span style="font-size:1.5rem;">🎯</span> ${t('results.howToUseTitle')}</div>
+                    <ul style="padding-left:20px;font-size:1.1rem;line-height:1.6;">${howToList}</ul>
                 </div>
-
                 <div class="cta-section">
-                    <h3 style="color: var(--secondary); margin-bottom: 16px;">Что дальше?</h3>
+                    <h3 style="color:var(--secondary);margin-bottom:16px;">${t('cta.whatNext')}</h3>
                     <div class="cta-grid">
-                        <button class="cta-btn cta-save" onclick="saveResult()">
-                            💾 Сохранить результат
-                        </button>
-                        <button class="cta-btn cta-chat" onclick="startChat()">
-                            🌿 Пробная сессия с AI-терапевтом
-                        </button>
-                        <button class="cta-btn cta-wiki" onclick="learnMore('${winningSchool}')">
-                            📚 Узнать больше о методе
-                        </button>
+                        <button class="cta-btn cta-save" onclick="saveResult()">${t('cta.save')}</button>
+                        <button class="cta-btn cta-chat" onclick="startChat()">${t('cta.chat')}</button>
+                        <button class="cta-btn cta-wiki" onclick="learnMore('${winningSchool}')">${t('cta.wiki')}</button>
                     </div>
-                    <p style="font-size:0.8rem;color:#888;margin-top:12px;">
-                        3 бесплатные сессии после регистрации
-                    </p>
+                    <p style="font-size:0.8rem;color:#888;margin-top:12px;">${t('cta.freeHint')}</p>
                 </div>
             `;
-            
-            // Показываем контейнер с результатами
-            resultContainer.style.display = 'block';
-            resultContainer.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function getRecommendation(winningSchool, sortedSchools) {
-            const recommendations = {
-                "К": "Когнитивно-поведенческая терапия (КПТ) может вам подойти. Она даёт конкретные инструменты для работы с мыслями и поведением. Вы сможете ставить ясные цели и отслеживать прогресс.",
-                "П": "Психоаналитическая терапия, возможно, будет вам близка. Вы сможете исследовать глубинные причины своих переживаний, понять бессознательные сценарии и работать с повторяющимися паттернами.",
-                "Г": "Гештальт-терапия поможет развить контакт с телом и текущим моментом. Вы научитесь завершать незавершённые ситуации, выражать чувства и находить ресурсы в «здесь и сейчас».",
-                "Э": "Экзистенциальная терапия предложит пространство для исследования фундаментальных вопросов: смысла, свободы, одиночества, смерти. Вы сможете найти собственные ответы на то, что значит жить осознанно.",
-                "Н": "Терапия может быть вам не нужна прямо сейчас. У вас уже есть свои ресурсы и способы справляться. Если захотите углубиться в самопознание — всегда сможете вернуться к этому вопросу."
-            };
-            
-            let recommendation = recommendations[winningSchool];
-            
-            // Добавляем интегративную рекомендацию, если второе место близко
-            const secondSchool = sortedSchools[1];
-            if (secondSchool.score >= sortedSchools[0].score - 1) {
-                recommendation += ` Также рассмотрите интегративный подход, сочетающий ${schools[winningSchool].name.toLowerCase()} с элементами ${secondSchool.name.toLowerCase()} — это может дать вам более полную картину.`;
-            }
-            
-            return recommendation;
+            rc.style.display = 'block';
+            rc.scrollIntoView({ behavior: 'smooth' });
         }
 
         function restartTest() {
             currentQuestion = 0;
-            answers = Array(questions.length).fill(null);
+            answers = Array(Q_COUNT).fill(null);
             scores = { "К": 0, "П": 0, "Г": 0, "Э": 0, "Н": 0 };
-            
-            // Сбрасываем UI
-            document.querySelectorAll('.question-card').forEach(card => {
-                card.style.display = 'none';
-                card.classList.remove('active');
-            });
-            
+            document.querySelectorAll('.question-card').forEach(c => { c.style.display = 'none'; c.classList.remove('active'); });
             document.getElementById('question0').classList.add('active');
             document.getElementById('question0').style.display = 'block';
-            
             document.querySelector('.buttons').style.display = 'flex';
             document.getElementById('prevBtn').disabled = true;
             document.getElementById('nextBtn').disabled = true;
-            document.getElementById('nextBtn').textContent = 'Далее →';
-            
+            document.getElementById('nextBtn').textContent = t('buttons.next');
             document.getElementById('resultContainer').style.display = 'none';
-            
-            // Сброс выбранных опций
-            document.querySelectorAll('.option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            
+            document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
             updateProgress();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Запускаем тест при загрузке
-        window.onload = initTest;
-
-        // ─── CTA: Сохранить результат ───
+        // ─── CTA ───
         let lastResultData = null;
 
         async function saveResult() {
@@ -1190,49 +1055,37 @@
             const token = localStorage.getItem('tf_token');
             const headers = { 'Content-Type': 'application/json' };
             if (token) headers['Authorization'] = `Bearer ${token}`;
-
             try {
-                const res = await fetch(`${getApiBase()}/api/results`, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(lastResultData)
-                });
+                const res = await fetch(`${getApiBase()}/api/results`, { method: 'POST', headers, body: JSON.stringify(lastResultData) });
                 const data = await res.json();
                 if (res.ok) {
-                    showSnackbar(data.linkedToAccount
-                        ? '✅ Результат сохранён в ваш профиль!'
-                        : '✅ Результат сохранён анонимно. Зарегистрируйтесь, чтобы привязать его.');
+                    showSnackbar(data.linkedToAccount ? t('snackbar.savedLinked') : t('snackbar.savedAnon'));
                 } else {
-                    showSnackbar('⚠️ ' + (data.error || 'Ошибка сохранения'));
+                    showSnackbar('⚠️ ' + (data.error || ''));
                 }
             } catch {
-                showSnackbar('⚠️ Сервер недоступен. Попробуйте позже.');
+                showSnackbar(t('snackbar.serverUnavailable'));
             }
         }
 
         function startChat() {
-            // Если уже авторизован — сразу в чат
-            if (localStorage.getItem('tf_token')) {
-                window.location.href = 'chat.html';
-            } else {
-                window.location.href = 'auth.html?redirect=chat';
-            }
+            window.location.href = localStorage.getItem('tf_token') ? 'chat.html' : 'auth.html?redirect=chat';
         }
 
         function learnMore(schoolCode) {
-            const wikiPages = {
+            const wiki = loc.wiki || {
                 'К': 'https://ru.wikipedia.org/wiki/Когнитивно-поведенческая_терапия',
                 'П': 'https://ru.wikipedia.org/wiki/Психоанализ',
                 'Г': 'https://ru.wikipedia.org/wiki/Гештальт-терапия',
                 'Э': 'https://ru.wikipedia.org/wiki/Экзистенциальная_психотерапия',
                 'Н': 'https://ru.wikipedia.org/wiki/Психотерапия'
             };
-            window.open(wikiPages[schoolCode] || wikiPages['Н'], '_blank');
+            window.open(wiki[schoolCode] || wiki['Н'], '_blank');
         }
 
         function getApiBase() {
             return (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-                ? '' : 'https://therapy-funnel.onrender.com';
+                ? '' : 'https://api.therapyvoid.com';
         }
 
         function showSnackbar(msg) {
@@ -1244,6 +1097,13 @@
             document.body.appendChild(el);
             setTimeout(() => el.remove(), 3000);
         }
+
+        // ─── Init ───
+        window.onload = async () => {
+            lang = detectLang();
+            await loadLocale(lang);
+            initTestUI();
+        };
     </script>
 </body>
 </html>
