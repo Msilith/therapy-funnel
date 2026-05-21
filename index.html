@@ -284,7 +284,9 @@
                     showResults();
                 } else {
                     initTestUI();
+                    restoreTestState();
                 }
+                updateStaticText();
             });
         }
 
@@ -304,10 +306,6 @@
         let resultsShown = false;
 
         function initTestUI() {
-            // Reset scores for all schools
-            scores = {};
-            ALL_SCHOOLS.forEach(s => scores[s] = 0);
-
             const container = document.getElementById('questionsContainer');
             container.innerHTML = '';
             questions.forEach((question, index) => {
@@ -328,6 +326,30 @@
                 `;
                 container.innerHTML += questionHTML;
             });
+            updateProgress();
+        }
+
+        function restoreTestState() {
+            // Show correct question
+            document.querySelectorAll('.question-card').forEach((c, i) => {
+                if (i === currentQuestion) c.classList.add('active');
+                else c.classList.remove('active');
+            });
+            // Restore selected answers
+            answers.forEach((ans, qi) => {
+                if (ans !== null) {
+                    const el = document.getElementById(`q${qi}o${ans}`);
+                    if (el) el.classList.add('selected');
+                }
+            });
+            // Restore button states
+            document.getElementById('prevBtn').disabled = currentQuestion === 0;
+            document.getElementById('nextBtn').disabled = answers[currentQuestion] === null;
+            if (currentQuestion === Q_COUNT - 1) {
+                document.getElementById('nextBtn').textContent = t('buttons.result');
+            } else {
+                document.getElementById('nextBtn').textContent = t('buttons.next');
+            }
             updateProgress();
         }
 
@@ -533,6 +555,7 @@
         window.onload = async () => {
             lang = detectLang();
             await loadLocale(lang);
+            ALL_SCHOOLS.forEach(s => scores[s] = 0);
             initTestUI();
         };
     </script>
