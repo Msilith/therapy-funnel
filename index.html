@@ -280,7 +280,7 @@
 
         function switchLang(l) {
             loadLocale(l).then(() => {
-                if (document.getElementById('resultContainer').style.display !== 'none') {
+                if (resultsShown) {
                     showResults();
                 } else {
                     initTestUI();
@@ -301,6 +301,7 @@
         let currentQuestion = 0;
         let answers = Array(Q_COUNT).fill(null);
         let scores = {};
+        let resultsShown = false;
 
         function initTestUI() {
             // Reset scores for all schools
@@ -397,6 +398,7 @@
         }
 
         function showResults() {
+            resultsShown = true;
             let maxScore = 0;
             let winningSchool = ALL_SCHOOLS[0];
             for (const [school, score] of Object.entries(scores)) {
@@ -466,6 +468,7 @@
         }
 
         function restartTest() {
+            resultsShown = false;
             currentQuestion = 0;
             answers = Array(Q_COUNT).fill(null);
             ALL_SCHOOLS.forEach(s => scores[s] = 0);

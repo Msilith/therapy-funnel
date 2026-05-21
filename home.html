@@ -80,6 +80,15 @@
 
     <div class="container">
 
+        <!-- Language Picker -->
+        <div style="text-align:center;padding:40px 20px 10px;">
+            <p style="color:#888;font-size:0.95rem;margin-bottom:12px;">Выберите язык / Choose language</p>
+            <select onchange="switchLang(this.value)" style="padding:10px 16px;border-radius:8px;border:2px solid #ddd;font-size:1.1rem;cursor:pointer;background:white;">
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="en">🇬🇧 English</option>
+            </select>
+        </div>
+
         <!-- Hero -->
         <div class="hero">
             <h1>Therapy Void</h1>
@@ -154,8 +163,11 @@
             <option value="en">🇬🇧 EN</option>
         </select>
         <script>
-            function switchLang(l) { localStorage.setItem('tf_lang',l); window.location.reload(); }
-            document.querySelector('select').value = localStorage.getItem('tf_lang') || 'ru';
+            function switchLang(l) { localStorage.setItem('tf_lang',l); window.location.href = 'home.html?lang=' + l; }
+            // Set select to saved language
+            const saved = localStorage.getItem('tf_lang') || 'ru';
+            document.querySelector('select').value = saved;
+            document.documentElement.lang = saved;
         </script>
     </footer>
 </body>
