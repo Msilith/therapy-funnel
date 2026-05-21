@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AI-терапевт — Therapy Funnel</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        :root {
+            --primary: #4a6fa5; --secondary: #166088; --accent: #ff6b6b;
+            --light: #f8f9fa; --dark: #343a40; --radius: 12px;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            height: 100vh; height: 100dvh; display: flex; flex-direction: column;
+            color: var(--dark);
+        }
+
+        /* Header */
+        .chat-header {
+            background: white; padding: 14px 18px; display: flex;
+            align-items: center; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            z-index: 10;
+        }
+        .chat-header .avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(45deg, #1a1a1a, #2a0a0a);
+            border: 2px solid #8b0000; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; flex-shrink: 0;
+        }
+        .chat-header .info { flex: 1; }
+        .chat-header .name { font-weight: 700; font-size: 0.95rem; color: var(--secondary); }
+        .chat-header .status { font-size: 0.75rem; color: #888; }
+        .chat-header .tier-badge {
+            font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; font-weight: 600;
+        }
+        .tier-free { background: #e9ecef; color: #666; }
+        .tier-pro { background: #ff6b6b; color: white; }
+        .chat-header .back-btn {
+            background: none; border: none; font-size: 1.4rem; cursor: pointer;
+            padding: 6px; color: #666; line-height: 1;
+        }
+
+        /* Messages */
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 16px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .msg {
+            max-width: 85%; padding: 12px 16px; border-radius: 16px;
+            font-size: 0.95rem; line-height: 1.5; word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+        .msg.user {
+            align-self: flex-end; background: var(--primary); color: white;
+            border-bottom-right-radius: 6px;
+        }
+        .msg.ai {
+            align-self: flex-start; background: white; color: var(--dark);
+            border-bottom-left-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .msg.system {
+            align-self: center; background: #f8f9fa; color: #666; font-size: 0.8rem;
+            border-radius: 10px; max-width: 90%;
+        }
+        .typing {
+            align-self: flex-start; padding: 12px 16px; font-size: 0.9rem; color: #888;
+        }
+        .typing span { animation: blink 1.4s infinite; }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+        /* Input */
+        .chat-input-wrap {
+            background: white; padding: 10px 14px; display: flex; gap: 10px;
+            align-items: flex-end; box-shadow: 0 -1px 4px rgba(0,0,0,0.06);
+            padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
+        }
+        .chat-input-wrap textarea {
+            flex: 1; border: 2px solid #e9ecef; border-radius: 20px;
+            padding: 10px 16px; font-size: 0.95rem; resize: none; outline: none;
+            max-height: 120px; font-family: inherit; line-height: 1.4;
+        }
+        .chat-input-wrap textarea:focus { border-color: var(--primary); }
+        .send-btn {
+            width: 44px; height: 44px; border-radius: 50%; border: none;
+            background: var(--primary); color: white; font-size: 1.2rem;
+            cursor: pointer; flex-shrink: 0; touch-action: manipulation;
+            transition: all 0.2s;
+        }
+        .send-btn:hover { background: var(--secondary); }
+        .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* Upgrade banner */
+        .upgrade-banner {
+            background: linear-gradient(135deg, #ff6b6b, #e74c3c); color: white;
+            text-align: center; padding: 10px; font-size: 0.85rem; font-weight: 600;
+            display: none;
+        }
+        .upgrade-banner.show { display: block; }
+
+        /* Empty state */
+        .empty-state {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; text-align: center; color: #888; padding: 20px;
+        }
+        .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
+        .empty-state h3 { color: var(--secondary); margin-bottom: 8px; }
+        .empty-state p { font-size: 0.9rem; max-width: 280px; line-height: 1.5; }
+
+        /* Login prompt */
+        .login-prompt {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; text-align: center; padding: 20px;
+        }
+        .login-prompt h2 { color: var(--secondary); margin-bottom: 10px; }
+        .login-prompt p { color: #666; margin-bottom: 20px; font-size: 0.9rem; }
+        .login-prompt .btn {
+            padding: 14px 32px; border-radius: 8px; border: none; font-size: 1rem;
+            font-weight: 600; cursor: pointer; min-height: 48px;
+            background: var(--primary); color: white; text-decoration: none;
+            display: inline-block; touch-action: manipulation;
+        }
+        .login-prompt .btn:hover { background: var(--secondary); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        @media (max-width: 480px) {
+            .msg { font-size: 0.9rem; }
+            .chat-header { padding: 10px 12px; }
+            .chat-input-wrap { padding: 8px 10px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="chat-header">
+        <button class="back-btn" onclick="window.location.href='index.html'" title="Назад">←</button>
+        <div class="avatar">🌿</div>
+        <div class="info">
+            <div class="name">AI Гештальт-терапевт</div>
+            <div class="status" id="modelStatus">DeepSeek V3</div>
+        </div>
+        <span class="tier-badge tier-free" id="tierBadge">Free</span>
+    </div>
+
+    <!-- Upgrade banner -->
+    <div class="upgrade-banner" id="upgradeBanner">
+        🔥 Пробные сессии закончились. Pro-тариф с DeepSeek V4 Pro — скоро!
+    </div>
+
+    <!-- Content area -->
+    <div id="contentArea" style="flex:1; display:flex; flex-direction:column; overflow:hidden;"></div>
+
+    <script>
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? '' : 'https://therapy-funnel.onrender.com';
+
+        let messages = [];
+        let user = null;
+        let trialLeft = null;
+
+        // Проверяем авторизацию
+        function checkAuth() {
+            const token = localStorage.getItem('tf_token');
+            const userData = localStorage.getItem('tf_user');
+            if (!token || !userData) return false;
+
+            try {
+                user = JSON.parse(userData);
+                // Проверяем актуальность через /api/auth/me
+                fetch(`${API_BASE}/api/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(r => r.json()).then(data => {
+                    if (data.error) {
+                        logout();
+                    } else {
+                        user = data;
+                        trialLeft = data.trialSessionsLeft;
+                        updateUI();
+                    }
+                }).catch(() => {});
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('tf_token');
+            localStorage.removeItem('tf_user');
+            user = null;
+            trialLeft = null;
+        }
+
+        function updateUI() {
+            if (!user) return;
+
+            // Tier badge
+            const badge = document.getElementById('tierBadge');
+            if (user.tier === 'pro') {
+                badge.textContent = 'Pro';
+                badge.className = 'tier-badge tier-pro';
+                document.getElementById('modelStatus').textContent = 'DeepSeek V4 Pro';
+            } else {
+                badge.textContent = 'Free';
+                badge.className = 'tier-badge tier-free';
+                const left = trialLeft !== null ? trialLeft : user.trialSessionsLeft;
+                document.getElementById('modelStatus').textContent = `DeepSeek V3 · Сессий: ${left ?? '?'}`;
+            }
+
+            if (trialLeft === 0 && user.tier !== 'pro') {
+                document.getElementById('upgradeBanner').classList.add('show');
+            }
+        }
+
+        function renderChat() {
+            const contentArea = document.getElementById('contentArea');
+
+            if (!user) {
+                contentArea.innerHTML = `
+                    <div class="login-prompt">
+                        <div class="emoji">🌿</div>
+                        <h2>AI Гештальт-терапевт</h2>
+                        <p>Войдите, чтобы начать сессию.<br>3 пробных сессии бесплатно.</p>
+                        <a href="auth.html?redirect=chat" class="btn">Войти / Зарегистрироваться</a>
+                    </div>`;
+                return;
+            }
+
+            if (messages.length === 0) {
+                contentArea.innerHTML = `
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="empty-state">
+                            <div class="emoji">🌿</div>
+                            <h3>Добро пожаловать</h3>
+                            <p>Я AI-гештальт-терапевт. Что привело вас сегодня? Как вы себя чувствуете прямо сейчас?</p>
+                            <p style="font-size:0.75rem; color:#aaa; margin-top:10px;">
+                                ${user.tier === 'pro' ? 'Pro-тариф · DeepSeek V4 Pro' : `Free · Осталось сессий: ${trialLeft ?? user.trialSessionsLeft}`}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="chat-input-wrap">
+                        <textarea id="chatInput" rows="1" placeholder="Напишите сообщение..." onkeydown="handleKey(event)"></textarea>
+                        <button class="send-btn" onclick="sendMessage()" id="sendBtn">↑</button>
+                    </div>`;
+            } else {
+                contentArea.innerHTML = `
+                    <div class="chat-messages" id="chatMessages">
+                        ${renderMessages()}
+                    </div>
+                    <div class="chat-input-wrap">
+                        <textarea id="chatInput" rows="1" placeholder="Напишите сообщение..." onkeydown="handleKey(event)"></textarea>
+                        <button class="send-btn" onclick="sendMessage()" id="sendBtn">↑</button>
+                    </div>`;
+            }
+
+            // Скролл вниз
+            const msgContainer = document.getElementById('chatMessages');
+            if (msgContainer) msgContainer.scrollTop = msgContainer.scrollHeight;
+
+            // Авто-ресize textarea
+            const input = document.getElementById('chatInput');
+            if (input) {
+                input.addEventListener('input', () => {
+                    input.style.height = 'auto';
+                    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+                });
+            }
+        }
+
+        function renderMessages() {
+            return messages.map(m => {
+                if (m.role === 'system') {
+                    return `<div class="msg system">${escapeHtml(m.content)}</div>`;
+                }
+                const cls = m.role === 'user' ? 'user' : 'ai';
+                return `<div class="msg ${cls}">${escapeHtml(m.content)}</div>`;
+            }).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML.replace(/\n/g, '<br>');
+        }
+
+        function handleKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const token = localStorage.getItem('tf_token');
+            if (!token) { logout(); renderChat(); return; }
+
+            // Блокируем отправку
+            input.value = '';
+            input.style.height = 'auto';
+            document.getElementById('sendBtn').disabled = true;
+
+            // Показываем сообщение пользователя
+            const userMsg = { role: 'user', content: text };
+            messages.push(userMsg);
+            renderChat();
+
+            // Показываем печатание
+            const msgContainer = document.getElementById('chatMessages');
+            const typingEl = document.createElement('div');
+            typingEl.className = 'msg ai typing';
+            typingEl.innerHTML = '<span>●</span><span>●</span><span>●</span>';
+            msgContainer.appendChild(typingEl);
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+
+            try {
+                // Готовим историю без последнего сообщения
+                const history = messages.slice(0, -1).filter(m => m.role !== 'system');
+
+                const res = await fetch(`${API_BASE}/api/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ message: text, history })
+                });
+
+                typingEl.remove();
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    if (data.code === 'TRIAL_EXHAUSTED') {
+                        trialLeft = 0;
+                        messages.push({ role: 'system', content: '💬 Пробные сессии закончились. Pro-тариф с DeepSeek V4 Pro — скоро!' });
+                    } else {
+                        messages.push({ role: 'system', content: `⚠️ ${data.error || 'Ошибка сервера'}` });
+                    }
+                } else {
+                    messages.push({ role: 'assistant', content: data.reply });
+                    if (data.trialSessionsLeft !== null && data.trialSessionsLeft !== undefined) {
+                        trialLeft = data.trialSessionsLeft;
+                    }
+                }
+
+                updateUI();
+                renderChat();
+            } catch (err) {
+                typingEl.remove();
+                messages.push({ role: 'system', content: '⚠️ Ошибка соединения. Проверьте интернет.' });
+                renderChat();
+            }
+
+            document.getElementById('sendBtn').disabled = false;
+            document.getElementById('chatInput').focus();
+        }
+
+        // Инициализация
+        if (checkAuth()) {
+            renderChat();
+        } else {
+            renderChat();
+        }
+    </script>
+</body>
+</html>

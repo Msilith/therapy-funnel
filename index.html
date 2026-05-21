@@ -326,6 +326,99 @@
             background: #ff5252;
         }
 
+        /* CTA-кнопки после результатов */
+        .cta-section {
+            background: #f8f9fa;
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .cta-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .cta-btn {
+            width: 100%;
+            padding: 16px 20px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 52px;
+            touch-action: manipulation;
+            color: white;
+        }
+
+        .cta-save {
+            background: #166088;
+        }
+
+        .cta-save:hover {
+            background: #0e4a6e;
+        }
+
+        .cta-chat {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+            animation: pulse-cta 2s ease-in-out infinite;
+        }
+
+        .cta-chat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .cta-wiki {
+            background: #6c757d;
+        }
+
+        .cta-wiki:hover {
+            background: #5a6268;
+        }
+
+        @keyframes pulse-cta {
+            0%, 100% { box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3); }
+            50% { box-shadow: 0 4px 24px rgba(46, 204, 113, 0.5); }
+        }
+
+        @media (max-width: 480px) {
+            .cta-section {
+                padding: 16px;
+            }
+            .cta-btn {
+                padding: 14px 16px;
+                font-size: 0.95rem;
+                min-height: 48px;
+            }
+        }
+
+        /* Snackbar */
+        .snackbar {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #343a40;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            z-index: 200;
+            animation: snackIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        @keyframes snackIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -942,6 +1035,13 @@
             
             // Описание героя
             const hero = heroProfiles[winningSchool];
+
+            // Сохраняем для кнопки «Сохранить результат»
+            lastResultData = {
+                scores: {...scores},
+                hero: hero.title,
+                schoolCode: winningSchool
+            };
             
             // Сортируем школы по баллам
             const sortedSchools = Object.entries(scores)
@@ -996,6 +1096,24 @@
                         <li style="margin-bottom: 10px;">Используйте сильные стороны вашего профиля в повседневной жизни</li>
                         <li>Помните: идеального подхода не существует — важнее всего ваше доверие к терапевту</li>
                     </ul>
+                </div>
+
+                <div class="cta-section">
+                    <h3 style="color: var(--secondary); margin-bottom: 16px;">Что дальше?</h3>
+                    <div class="cta-grid">
+                        <button class="cta-btn cta-save" onclick="saveResult()">
+                            💾 Сохранить результат
+                        </button>
+                        <button class="cta-btn cta-chat" onclick="startChat()">
+                            🌿 Пробная сессия с AI-терапевтом
+                        </button>
+                        <button class="cta-btn cta-wiki" onclick="learnMore('${winningSchool}')">
+                            📚 Узнать больше о методе
+                        </button>
+                    </div>
+                    <p style="font-size:0.8rem;color:#888;margin-top:12px;">
+                        3 бесплатные сессии после регистрации
+                    </p>
                 </div>
             `;
             
@@ -1056,6 +1174,69 @@
 
         // Запускаем тест при загрузке
         window.onload = initTest;
+
+        // ─── CTA: Сохранить результат ───
+        let lastResultData = null;
+
+        async function saveResult() {
+            if (!lastResultData) return;
+            const token = localStorage.getItem('tf_token');
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            try {
+                const res = await fetch(`${getApiBase()}/api/results`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(lastResultData)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showSnackbar(data.linkedToAccount
+                        ? '✅ Результат сохранён в ваш профиль!'
+                        : '✅ Результат сохранён анонимно. Зарегистрируйтесь, чтобы привязать его.');
+                } else {
+                    showSnackbar('⚠️ ' + (data.error || 'Ошибка сохранения'));
+                }
+            } catch {
+                showSnackbar('⚠️ Сервер недоступен. Попробуйте позже.');
+            }
+        }
+
+        function startChat() {
+            // Если уже авторизован — сразу в чат
+            if (localStorage.getItem('tf_token')) {
+                window.location.href = 'chat.html';
+            } else {
+                window.location.href = 'auth.html?redirect=chat';
+            }
+        }
+
+        function learnMore(schoolCode) {
+            const wikiPages = {
+                'К': 'https://ru.wikipedia.org/wiki/Когнитивно-поведенческая_терапия',
+                'П': 'https://ru.wikipedia.org/wiki/Психоанализ',
+                'Г': 'https://ru.wikipedia.org/wiki/Гештальт-терапия',
+                'Э': 'https://ru.wikipedia.org/wiki/Экзистенциальная_психотерапия',
+                'Н': 'https://ru.wikipedia.org/wiki/Психотерапия'
+            };
+            window.open(wikiPages[schoolCode] || wikiPages['Н'], '_blank');
+        }
+
+        function getApiBase() {
+            return (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                ? '' : 'https://therapy-funnel.onrender.com';
+        }
+
+        function showSnackbar(msg) {
+            const existing = document.querySelector('.snackbar');
+            if (existing) existing.remove();
+            const el = document.createElement('div');
+            el.className = 'snackbar';
+            el.textContent = msg;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
     </script>
 </body>
 </html>
