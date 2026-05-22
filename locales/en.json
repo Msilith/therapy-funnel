@@ -475,7 +475,7 @@
     "emojiExistential": "🌌",
     "emojiChristian": "🕯️",
     "emojiIslamic": "🌙",
-    "modelDefault": "DeepSeek V3",
+    "modelDefault": "V4-Flash",
     "modelPro": "DeepSeek V4 Pro",
     "tierFree": "Free",
     "tierPro": "Pro",
