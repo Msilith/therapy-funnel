@@ -42,6 +42,18 @@ function isValidEmail(email) {
 
 // ─── CORS ───
 app.use(cors());
+
+// ─── Защита Render: не больше 10 одновременных запросов ───
+let activeRequests = 0;
+const MAX_CONCURRENT = 10;
+app.use((req, res, next) => {
+  if (activeRequests >= MAX_CONCURRENT) {
+    return res.status(503).json({ error: 'Сервер перегружен, попробуйте через пару секунд' });
+  }
+  activeRequests++;
+  res.on('finish', () => { activeRequests--; });
+  next();
+});
 app.use(express.json());
 app.use(express.static('.'));
 
