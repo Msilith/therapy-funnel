@@ -52,4 +52,5 @@ temp/
 
 # Backend (if added)
 uploads/
-database.sqlitePROJECT_CREDS.md
+database.sqlite
+PROJECT_CREDS.md

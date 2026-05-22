@@ -9,8 +9,8 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://localhost:5432/therapyfunnel';
-const JWT_SECRET = process.env.JWT_SECRET || 'therapy-funnel-dev-secret-change-me';
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-ba29207a867645c3845a8ec3f1a4c431';
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-change-in-production';
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
 const DEEPSEEK_BASE = 'https://api.deepseek.com/v1';
 
 // ─── PostgreSQL Pool (Neon) ───
