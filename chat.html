@@ -205,8 +205,19 @@
                 const r = await fetch(`locales/${l}.json`);
                 const d = await r.json();
                 chatLoc = d.chat;
+                // Set initial header based on saved mode
+                const lastResult = localStorage.getItem('tf_lastResult');
+                let initMode = 'gestalt';
+                if (lastResult) {
+                    try {
+                        const r = JSON.parse(lastResult);
+                        initMode = {C:'cbt',P:'psychoanalytic',G:'gestalt',E:'existential',X:'christian',I:'islamic'}[r.schoolCode] || 'gestalt';
+                    } catch(e) {}
+                }
+                chatMode = initMode;
                 document.title = ct('title');
-                document.getElementById('headerName').textContent = ct('headerName');
+                const hKey = 'header' + initMode.charAt(0).toUpperCase() + initMode.slice(1);
+                document.getElementById('headerName').textContent = ct(hKey) || ct('headerName');
                 document.getElementById('modelStatus').textContent = ct('modelDefault');
                 document.getElementById('backBtn').title = ct('backTitle');
                 document.getElementById('footerTos').textContent = ct('tos');
@@ -256,8 +267,8 @@
         function updateUI() {
             if (!user) return;
             // Set header name based on mode
-            const modeNames = { gestalt: ct('headerName'), cbt: 'CBT Guide', psychoanalytic: 'Psychoanalytic Guide', existential: 'Existential Guide', christian: 'Christian Guide', islamic: 'Islamic Guide' };
-            document.getElementById('headerName').textContent = modeNames[chatMode] || ct('headerName');
+            const headerKey = 'header' + chatMode.charAt(0).toUpperCase() + chatMode.slice(1);
+            document.getElementById('headerName').textContent = ct(headerKey) || ct('headerName');
 
             const badge = document.getElementById('tierBadge');
             const status = document.getElementById('modelStatus');
@@ -292,12 +303,16 @@
             if (messages.length === 0) {
                 const left = trialLeft ?? user.trialSessionsLeft;
                 const freeBadge = user.tier === 'pro' ? `Pro · ${ct('modelPro')}` : ct('freeBadge', {left});
+                const wKey = 'welcome' + chatMode.charAt(0).toUpperCase() + chatMode.slice(1);
+                const eKey = 'emoji' + chatMode.charAt(0).toUpperCase() + chatMode.slice(1);
+                const wText = ct(wKey) || ct('welcomeText');
+                const emoji = ct(eKey) || '🌿';
                 contentArea.innerHTML = `
                     <div class="chat-messages" id="chatMessages">
                         <div class="empty-state">
-                            <div class="emoji">🌿</div>
+                            <div class="emoji">${emoji}</div>
                             <h3>${ct('welcomeTitle')}</h3>
-                            <p>${ct('welcomeText')}</p>
+                            <p>${wText}</p>
                             <p style="font-size:0.75rem; color:#aaa; margin-top:10px;">${freeBadge}</p>
                         </div>
                     </div>
@@ -397,14 +412,6 @@
 
         // Init
         loadChatLocale().then(() => {
-            // Read test result to set mode
-            const lastResult = localStorage.getItem('tf_lastResult');
-            if (lastResult) {
-                try {
-                    const r = JSON.parse(lastResult);
-                    chatMode = SCHOOL_TO_MODE[r.schoolCode] || 'gestalt';
-                } catch(e) {}
-            }
             if (checkAuth()) { renderChat(); } else { renderChat(); }
         });
     </script>
