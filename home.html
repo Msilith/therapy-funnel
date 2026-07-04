@@ -12,7 +12,6 @@
         :root { --primary:#4a6fa5; --secondary:#166088; --accent:#ff6b6b; --light:#f8f9fa; --dark:#343a40; --radius:12px; }
         body { background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%); min-height:100vh; color:var(--dark); padding-bottom:env(safe-area-inset-bottom,20px); }
 
-        /* Nav */
         .topnav { background:white; border-bottom:1px solid #e9ecef; position:sticky; top:0; z-index:100; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
         .topnav-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; gap:4px; padding:6px 12px; }
         .topnav a { text-decoration:none; padding:8px 14px; border-radius:6px; font-size:0.9rem; color:#555; font-weight:500; transition:all 0.2s; white-space:nowrap; }
@@ -24,7 +23,6 @@
 
         .container { max-width:900px; margin:0 auto; padding:20px; }
 
-        /* Hero */
         .hero { text-align:center; padding:60px 20px 40px; }
         .hero h1 { color:var(--secondary); font-size:2.6rem; margin-bottom:12px; }
         .hero p { color:#666; font-size:1.2rem; max-width:600px; margin:0 auto 24px; line-height:1.6; }
@@ -35,7 +33,6 @@
         .btn-green { background:linear-gradient(135deg,#2ecc71,#27ae60); }
         .btn-green:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(46,204,113,0.4); }
 
-        /* Sections */
         section { margin:40px 0; }
         section h2 { color:var(--secondary); font-size:1.8rem; margin-bottom:24px; text-align:center; }
         .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; }
@@ -46,7 +43,6 @@
         .card p { color:#555; font-size:0.9rem; line-height:1.5; }
         .card .tag { display:inline-block; background:#f0f0f0; color:#888; font-size:0.7rem; padding:2px 8px; border-radius:10px; margin-top:8px; }
 
-        /* Spiritual section */
         .spiritual-note { background:white; border-radius:var(--radius); padding:30px; box-shadow:0 2px 8px rgba(0,0,0,0.06); text-align:center; margin:40px 0; }
         .spiritual-note h3 { color:var(--secondary); font-size:1.3rem; margin-bottom:12px; }
         .spiritual-note p { color:#555; line-height:1.6; max-width:600px; margin:0 auto; }
@@ -82,7 +78,7 @@
 
         <!-- Language Picker -->
         <div style="text-align:center;padding:40px 20px 10px;">
-            <p style="color:#888;font-size:0.95rem;margin-bottom:12px;">Выберите язык / Choose language</p>
+            <p style="color:#888;font-size:0.95rem;margin-bottom:12px;" id="langPickerText">Выберите язык / Choose language</p>
             <select onchange="switchLang(this.value)" style="padding:10px 16px;border-radius:8px;border:2px solid #ddd;font-size:1.1rem;cursor:pointer;background:white;">
                 <option value="ru">🇷🇺 Русский</option>
                 <option value="en">🇬🇧 English</option>
@@ -92,56 +88,56 @@
         <!-- Hero -->
         <div class="hero">
             <h1>Therapy Void</h1>
-            <p>Пространство для самоисследования. Узнайте, какой подход к самопознанию вам ближе — от классической терапии до духовного наставничества.</p>
+            <p id="heroText">Пространство для самоисследования. Узнайте, какой подход к самопознанию вам ближе — от классической терапии до духовного наставничества.</p>
             <div class="cta-row">
-                <a href="index.html" class="btn btn-primary">🧭 Пройти тест</a>
-                <a href="chat.html" class="btn btn-green">🌿 AI-беседа</a>
+                <a href="index.html" class="btn btn-primary" id="ctaTest">🧭 Пройти тест</a>
+                <a href="chat.html" class="btn btn-green" id="ctaChat">🌿 AI-беседа</a>
             </div>
         </div>
 
         <!-- Therapy Approaches -->
         <section>
-            <h2>🎓 Подходы к самопознанию</h2>
+            <h2 id="approachesTitle">🎓 Подходы к самопознанию</h2>
             <div class="cards">
                 <div class="card">
                     <div class="emoji">🧠</div>
-                    <h3>Когнитивно-поведенческий</h3>
-                    <p>Работает с мыслями и поведением здесь и сейчас. Если вы склонны к анализу и планированию — этот подход даст вам конкретные инструменты для изменений. Упражнения, дневники, отслеживание прогресса.</p>
-                    <span class="tag">структура</span>
+                    <h3 id="cbtTitle">Когнитивно-поведенческий</h3>
+                    <p id="cbtDesc">Работает с мыслями и поведением здесь и сейчас. Если вы склонны к анализу и планированию — этот подход даст вам конкретные инструменты для изменений. Упражнения, дневники, отслеживание прогресса.</p>
+                    <span class="tag" id="cbtTag">структура</span>
                 </div>
                 <div class="card">
                     <div class="emoji">🕵️</div>
-                    <h3>Психоаналитический</h3>
-                    <p>Исследует глубинные причины переживаний, уходящие в детство и бессознательное. Если вам интересно «почему я такой» — здесь вы найдёте пространство для копания в прошлом и понимания своих паттернов.</p>
-                    <span class="tag">глубина</span>
+                    <h3 id="psychoTitle">Психоаналитический</h3>
+                    <p id="psychoDesc">Исследует глубинные причины переживаний, уходящие в детство и бессознательное. Если вам интересно «почему я такой» — здесь вы найдёте пространство для копания в прошлом и понимания своих паттернов.</p>
+                    <span class="tag" id="psychoTag">глубина</span>
                 </div>
                 <div class="card">
                     <div class="emoji">🌿</div>
-                    <h3>Гештальт-подход</h3>
-                    <p>Фокусируется на настоящем моменте и телесных ощущениях. Учит слышать себя, завершать незавершённое и находить ресурсы в «здесь и сейчас». Для тех, кто хочет чувствовать, а не только думать.</p>
-                    <span class="tag">тело</span>
+                    <h3 id="gestaltTitle">Гештальт-подход</h3>
+                    <p id="gestaltDesc">Фокусируется на настоящем моменте и телесных ощущениях. Учит слышать себя, завершать незавершённое и находить ресурсы в «здесь и сейчас». Для тех, кто хочет чувствовать, а не только думать.</p>
+                    <span class="tag" id="gestaltTag">тело</span>
                 </div>
                 <div class="card">
                     <div class="emoji">🌌</div>
-                    <h3>Экзистенциальный</h3>
-                    <p>Задаёт большие вопросы: о смысле, свободе, одиночестве и смерти. Не даёт готовых ответов, но создаёт пространство для поиска собственных. Для тех, кто ищет свой путь, а не инструкцию.</p>
-                    <span class="tag">смысл</span>
+                    <h3 id="existentialTitle">Экзистенциальный</h3>
+                    <p id="existentialDesc">Задаёт большие вопросы: о смысле, свободе, одиночестве и смерти. Не даёт готовых ответов, но создаёт пространство для поиска собственных. Для тех, кто ищет свой путь, а не инструкцию.</p>
+                    <span class="tag" id="existentialTag">смысл</span>
                 </div>
             </div>
         </section>
 
         <!-- Spiritual Direction -->
         <div class="spiritual-note">
-            <h3>🕯️🌙 Духовное измерение</h3>
-            <p>Самопознание не ограничивается психологией. Для многих людей вера — христианская, исламская или иная — является центральной осью жизни. Наш тест учитывает духовный склад личности: потребность в молитве, общине, следовании священным текстам. Мы не навязываем религию, но даём пространство для тех, для кого это важно.</p>
-            <p style="margin-top:12px;font-size:0.85rem;color:#888;">Вопросы теста составлены так, чтобы мягко выявить ваши склонности — без явного разделения на «светское» и «религиозное».</p>
+            <h3 id="spiritualTitle">🕯️🌙 Духовное измерение</h3>
+            <p id="spiritualDesc">Самопознание не ограничивается психологией. Для многих людей вера — христианская, исламская или иная — является центральной осью жизни. Наш тест учитывает духовный склад личности: потребность в молитве, общине, следовании священным текстам. Мы не навязываем религию, но даём пространство для тех, для кого это важно.</p>
+            <p style="margin-top:12px;font-size:0.85rem;color:#888;" id="spiritualNote">Вопросы теста составлены так, чтобы мягко выявить ваши склонности — без явного разделения на «светское» и «религиозное».</p>
         </div>
 
         <!-- How it works -->
         <section>
-            <h2>🔍 Как это работает</h2>
+            <h2 id="howTitle">🔍 Как это работает</h2>
             <div style="max-width:600px;margin:0 auto;background:white;border-radius:var(--radius);padding:30px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-                <p style="line-height:1.8;color:#555;">
+                <p style="line-height:1.8;color:#555;" id="howSteps">
                     <strong>1.</strong> Пройдите тест — 5 быстрых или 15 подробных вопросов.<br>
                     <strong>2.</strong> Узнайте своего «героя» — архетип, отражающий ваш склад личности.<br>
                     <strong>3.</strong> Получите рекомендацию подхода, который вам ближе всего.<br>
@@ -156,28 +152,124 @@
     <footer>
         <p>© 2025–2026 Therapy Void. All rights reserved.</p>
         <p style="margin-top:8px;">
-            <a href="tos.html">Условия использования</a> · <a href="privacy.html">Конфиденциальность</a>
+            <a href="tos.html" id="footerTos">Условия использования</a> · <a href="privacy.html" id="footerPrivacy">Конфиденциальность</a>
         </p>
         <select onchange="switchLang(this.value)" style="margin-top:10px;">
             <option value="ru">🇷🇺 RU</option>
             <option value="en">🇬🇧 EN</option>
         </select>
-        <script>
-            function switchLang(l) { localStorage.setItem('tf_lang',l); window.location.href = 'home.html?lang=' + l; }
-            // Set select to saved language
-            const saved = localStorage.getItem('tf_lang') || 'ru';
-            document.querySelectorAll('select').forEach(s => s.value = saved);
-            document.documentElement.lang = saved;
-            // Translate nav
-            const navI18n = {
-                ru: { home: 'Главная', test: 'Тест', chat: 'AI-беседа' },
-                en: { home: 'Home', test: 'Quiz', chat: 'AI Chat' }
-            };
-            const nav = navI18n[saved] || navI18n.ru;
-            document.getElementById('navHome').textContent = nav.home;
-            document.getElementById('navTest').textContent = nav.test;
-            document.getElementById('navChat').textContent = nav.chat;
-        </script>
     </footer>
+
+    <script>
+        const i18n = {
+            ru: {
+                nav: { home: 'Главная', test: 'Тест', chat: 'AI-беседа' },
+                heroText: 'Пространство для самоисследования. Узнайте, какой подход к самопознанию вам ближе — от классической терапии до духовного наставничества.',
+                ctaTest: '🧭 Пройти тест',
+                ctaChat: '🌿 AI-беседа',
+                approachesTitle: '🎓 Подходы к самопознанию',
+                cbtTitle: 'Когнитивно-поведенческий',
+                cbtDesc: 'Работает с мыслями и поведением здесь и сейчас. Если вы склонны к анализу и планированию — этот подход даст вам конкретные инструменты для изменений. Упражнения, дневники, отслеживание прогресса.',
+                cbtTag: 'структура',
+                psychoTitle: 'Психоаналитический',
+                psychoDesc: 'Исследует глубинные причины переживаний, уходящие в детство и бессознательное. Если вам интересно «почему я такой» — здесь вы найдёте пространство для копания в прошлом и понимания своих паттернов.',
+                psychoTag: 'глубина',
+                gestaltTitle: 'Гештальт-подход',
+                gestaltDesc: 'Фокусируется на настоящем моменте и телесных ощущениях. Учит слышать себя, завершать незавершённое и находить ресурсы в «здесь и сейчас». Для тех, кто хочет чувствовать, а не только думать.',
+                gestaltTag: 'тело',
+                existentialTitle: 'Экзистенциальный',
+                existentialDesc: 'Задаёт большие вопросы: о смысле, свободе, одиночестве и смерти. Не даёт готовых ответов, но создаёт пространство для поиска собственных. Для тех, кто ищет свой путь, а не инструкцию.',
+                existentialTag: 'смысл',
+                spiritualTitle: '🕯️🌙 Духовное измерение',
+                spiritualDesc: 'Самопознание не ограничивается психологией. Для многих людей вера — христианская, исламская или иная — является центральной осью жизни. Наш тест учитывает духовный склад личности: потребность в молитве, общине, следовании священным текстам. Мы не навязываем религию, но даём пространство для тех, для кого это важно.',
+                spiritualNote: 'Вопросы теста составлены так, чтобы мягко выявить ваши склонности — без явного разделения на «светское» и «религиозное».',
+                howTitle: '🔍 Как это работает',
+                howSteps: '<strong>1.</strong> Пройдите тест — 5 быстрых или 15 подробных вопросов.<br><strong>2.</strong> Узнайте своего «героя» — архетип, отражающий ваш склад личности.<br><strong>3.</strong> Получите рекомендацию подхода, который вам ближе всего.<br><strong>4.</strong> Попробуйте 5 бесплатных AI-бесед с наставником в вашем подходе.<br><strong>5.</strong> Зарегистрируйтесь и получите ещё 6 сообщений в подарок.',
+                tos: 'Условия использования',
+                privacy: 'Конфиденциальность'
+            },
+            en: {
+                nav: { home: 'Home', test: 'Quiz', chat: 'AI Chat' },
+                heroText: 'A space for self-discovery. Find out which approach to self-knowledge suits you best — from classic therapy to spiritual guidance.',
+                ctaTest: '🧭 Take the Quiz',
+                ctaChat: '🌿 AI Chat',
+                approachesTitle: '🎓 Approaches to Self-Discovery',
+                cbtTitle: 'Cognitive Behavioral',
+                cbtDesc: 'Works with thoughts and behavior in the here and now. If you tend to analyze and plan — this approach gives you concrete tools for change. Exercises, journals, progress tracking.',
+                cbtTag: 'structure',
+                psychoTitle: 'Psychoanalytic',
+                psychoDesc: 'Explores deep causes of experiences, going back to childhood and the unconscious. If you\'re curious about "why I am this way" — here you\'ll find space to dig into the past and understand your patterns.',
+                psychoTag: 'depth',
+                gestaltTitle: 'Gestalt Approach',
+                gestaltDesc: 'Focuses on the present moment and bodily sensations. Teaches you to hear yourself, complete the unfinished, and find resources in the here and now. For those who want to feel, not just think.',
+                gestaltTag: 'body',
+                existentialTitle: 'Existential',
+                existentialDesc: 'Asks the big questions: meaning, freedom, solitude, and death. Doesn\'t give ready answers, but creates space to find your own. For those seeking their own path, not an instruction manual.',
+                existentialTag: 'meaning',
+                spiritualTitle: '🕯️🌙 Spiritual Dimension',
+                spiritualDesc: 'Self-knowledge isn\'t limited to psychology. For many people, faith — Christian, Islamic, or other — is the central axis of life. Our test accounts for spiritual inclinations: the need for prayer, community, and sacred texts. We don\'t impose religion, but make space for those for whom it matters.',
+                spiritualNote: 'The quiz questions are designed to gently reveal your tendencies — without a clear division between "secular" and "religious."',
+                howTitle: '🔍 How It Works',
+                howSteps: '<strong>1.</strong> Take the quiz — 5 quick or 15 detailed questions.<br><strong>2.</strong> Discover your "hero" — an archetype reflecting your personality.<br><strong>3.</strong> Get a recommendation for the approach closest to you.<br><strong>4.</strong> Try 5 free AI conversations with a guide in your approach.<br><strong>5.</strong> Register and get 6 more messages as a gift.',
+                tos: 'Terms of Service',
+                privacy: 'Privacy Policy'
+            }
+        };
+
+        function applyLang(lang) {
+            const t = i18n[lang] || i18n.ru;
+            document.documentElement.lang = lang;
+
+            // Nav
+            document.getElementById('navHome').textContent = t.nav.home;
+            document.getElementById('navTest').textContent = t.nav.test;
+            document.getElementById('navChat').textContent = t.nav.chat;
+
+            // Hero
+            document.getElementById('heroText').textContent = t.heroText;
+            document.getElementById('ctaTest').textContent = t.ctaTest;
+            document.getElementById('ctaChat').textContent = t.ctaChat;
+
+            // Approaches
+            document.getElementById('approachesTitle').textContent = t.approachesTitle;
+            document.getElementById('cbtTitle').textContent = t.cbtTitle;
+            document.getElementById('cbtDesc').textContent = t.cbtDesc;
+            document.getElementById('cbtTag').textContent = t.cbtTag;
+            document.getElementById('psychoTitle').textContent = t.psychoTitle;
+            document.getElementById('psychoDesc').textContent = t.psychoDesc;
+            document.getElementById('psychoTag').textContent = t.psychoTag;
+            document.getElementById('gestaltTitle').textContent = t.gestaltTitle;
+            document.getElementById('gestaltDesc').textContent = t.gestaltDesc;
+            document.getElementById('gestaltTag').textContent = t.gestaltTag;
+            document.getElementById('existentialTitle').textContent = t.existentialTitle;
+            document.getElementById('existentialDesc').textContent = t.existentialDesc;
+            document.getElementById('existentialTag').textContent = t.existentialTag;
+
+            // Spiritual
+            document.getElementById('spiritualTitle').textContent = t.spiritualTitle;
+            document.getElementById('spiritualDesc').textContent = t.spiritualDesc;
+            document.getElementById('spiritualNote').textContent = t.spiritualNote;
+
+            // How it works
+            document.getElementById('howTitle').textContent = t.howTitle;
+            document.getElementById('howSteps').innerHTML = t.howSteps;
+
+            // Footer
+            document.getElementById('footerTos').textContent = t.tos;
+            document.getElementById('footerPrivacy').textContent = t.privacy;
+
+            // Selects
+            document.querySelectorAll('select').forEach(s => s.value = lang);
+        }
+
+        function switchLang(l) {
+            localStorage.setItem('tf_lang', l);
+            applyLang(l);
+        }
+
+        // Init
+        const saved = localStorage.getItem('tf_lang') || 'ru';
+        applyLang(saved);
+    </script>
 </body>
 </html>
