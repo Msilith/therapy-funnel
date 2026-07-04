@@ -66,6 +66,8 @@
         .restart-btn { background: var(--accent); color: white; margin: 20px auto; display: block; }
         .restart-btn:hover { background: #ff5252; }
 
+        .selector-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow); }
+
         .cta-section { background: #f8f9fa; border-radius: var(--radius); padding: 24px; margin-top: 24px; text-align: center; }
         .cta-grid { display: flex; flex-direction: column; gap: 12px; }
         .cta-btn { width: 100%; padding: 16px 20px; border: none; border-radius: var(--radius); font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; min-height: 52px; touch-action: manipulation; color: white; }
@@ -163,18 +165,61 @@
     </nav>
 
     <div class="container">
-        <header>
-            <h1><img src="images/icon-72x72.jpg" class="logo" alt="TherapyVoid"> <span data-i18n="heading">Создай своего героя</span></h1>
-            <p class="subtitle" data-i18n="subtitle">Десять вопросов — и ты узнаешь, какой подход к самопознанию тебе ближе.</p>
-            <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
-            <div id="progressText" data-i18n="progress" data-i18n-args='{"current":1,"total":10}'>Вопрос 1 из 10</div>
-        </header>
+        <!-- Selector Page -->
+        <div id="selectorPage" style="display:block;">
+            <header>
+                <h1><img src="images/icon-72x72.jpg" class="logo" alt="TherapyVoid"> <span data-i18n="heading">Создай своего героя</span></h1>
+                <p class="subtitle" data-i18n="subtitle">Узнай, какой подход к самопознанию тебе ближе.</p>
+            </header>
 
-        <div id="questionsContainer"></div>
+            <div style="background:white;border-radius:16px;padding:32px;box-shadow:0 4px 12px rgba(0,0,0,0.1);max-width:600px;margin:0 auto;">
+                <h2 style="color:#166088;text-align:center;margin-bottom:8px;" data-i18n="selector.title">Выберите формат</h2>
+                <p style="color:#666;text-align:center;margin-bottom:24px;font-size:0.95rem;" data-i18n="selector.subtitle">Чем подробнее вы ответите, тем точнее будет результат.</p>
 
-        <div class="buttons">
-            <button class="btn-prev" id="prevBtn" onclick="prevQuestion()" disabled data-i18n="prev">← Назад</button>
-            <button class="btn-next" id="nextBtn" onclick="nextQuestion()" data-i18n="next">Далее →</button>
+                <div style="display:flex;flex-direction:column;gap:16px;">
+                    <!-- Quick Option -->
+                    <div class="selector-card" onclick="startTest('quick')" style="background:#f8f9fa;border:2px solid #e9ecef;border-radius:12px;padding:24px;cursor:pointer;transition:all 0.3s;">
+                        <div style="display:flex;align-items:center;gap:16px;">
+                            <div style="font-size:2.5rem;">⚡</div>
+                            <div style="flex:1;">
+                                <h3 style="color:#343a40;margin-bottom:4px;" data-i18n="selector.quickTitle">Быстрый скрининг</h3>
+                                <p style="color:#666;font-size:0.9rem;margin:0;" data-i18n="selector.quickDesc">5 вопросов · ~2 минуты</p>
+                            </div>
+                            <span style="background:#e3f2fd;color:#1565c0;padding:6px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;" data-i18n="selector.quickBadge">⚡ Для тех, кто хочет попробовать</span>
+                        </div>
+                    </div>
+
+                    <!-- Full Option -->
+                    <div class="selector-card" onclick="startTest('full')" style="background:#f8f9fa;border:2px solid #4a6fa5;border-radius:12px;padding:24px;cursor:pointer;transition:all 0.3s;">
+                        <div style="display:flex;align-items:center;gap:16px;">
+                            <div style="font-size:2.5rem;">🎯</div>
+                            <div style="flex:1;">
+                                <h3 style="color:#343a40;margin-bottom:4px;" data-i18n="selector.fullTitle">Полный скрининг</h3>
+                                <p style="color:#666;font-size:0.9rem;margin:0;" data-i18n="selector.fullDesc">15 вопросов · ~5 минут</p>
+                            </div>
+                            <span style="background:#e8f5e9;color:#2e7d32;padding:6px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;" data-i18n="selector.fullBadge">🎯 Максимальная точность</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Page (hidden initially) -->
+        <div id="testPage" style="display:none;">
+            <header>
+                <h1><img src="images/icon-72x72.jpg" class="logo" alt="TherapyVoid"> <span data-i18n="heading">Создай своего героя</span></h1>
+                <p class="subtitle" id="testSubtitle" data-i18n="subtitle">Узнай, какой подход к самопознанию тебе ближе.</p>
+                <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+                <div id="progressText" data-i18n="progress" data-i18n-args='{"current":1,"total":10}'>Вопрос 1 из 10</div>
+                <button onclick="backToSelector()" style="background:none;border:none;color:#4a6fa5;cursor:pointer;font-size:0.9rem;margin-top:8px;" data-i18n="selector.backBtn">← Выбрать другой формат</button>
+            </header>
+
+            <div id="questionsContainer"></div>
+
+            <div class="buttons">
+                <button class="btn-prev" id="prevBtn" onclick="prevQuestion()" disabled data-i18n="prev">← Назад</button>
+                <button class="btn-next" id="nextBtn" onclick="nextQuestion()" data-i18n="next">Далее →</button>
+            </div>
         </div>
 
         <div class="result-container" id="resultContainer"></div>
@@ -198,7 +243,6 @@
     <script>
         // ─── i18n Engine ───
         const ALL_SCHOOLS = ['C','P','G','E','S','X','I'];
-        const Q_COUNT = 10;
         let loc = null;
         let lang = 'ru';
         let questions = [];
@@ -290,7 +334,11 @@
                 const key = el.dataset.i18n;
                 let args = null;
                 if (el.dataset.i18nArgs) {
-                    try { args = JSON.parse(el.dataset.i18nArgs); } catch {}
+                    try {
+                        args = JSON.parse(el.dataset.i18nArgs);
+                        // Update total to current Q_COUNT
+                        if (args.total) args.total = Q_COUNT;
+                    } catch {}
                 }
                 const val = t(key, args);
                 if (val && val !== key) el.textContent = val;
@@ -301,7 +349,7 @@
             loadLocale(l, true).then(() => {
                 if (resultsShown) {
                     showResults();
-                } else {
+                } else if (document.getElementById('testPage').style.display === 'block') {
                     initTestUI();
                     restoreTestState();
                 }
@@ -320,9 +368,56 @@
 
         // ─── Состояние теста ───
         let currentQuestion = 0;
-        let answers = Array(Q_COUNT).fill(null);
+        let answers = [];
         let scores = {};
         let resultsShown = false;
+        let testMode = 'full'; // 'quick' or 'full'
+        let Q_COUNT = 15;
+
+        function startTest(mode) {
+            testMode = mode;
+            const quickQuestions = loc.questions.filter(q => q.quick);
+            const allQuestions = loc.questions;
+
+            if (mode === 'quick') {
+                questions = shuffle(quickQuestions.map(q => ({
+                    id: q.id,
+                    text: q.text,
+                    options: shuffle(q.options.map(o => ({ text: o.text, school: o.school })))
+                })));
+            } else {
+                questions = shuffle(allQuestions.map(q => ({
+                    id: q.id,
+                    text: q.text,
+                    options: shuffle(q.options.map(o => ({ text: o.text, school: o.school })))
+                })));
+            }
+
+            Q_COUNT = questions.length;
+            answers = Array(Q_COUNT).fill(null);
+            currentQuestion = 0;
+            resultsShown = false;
+            ALL_SCHOOLS.forEach(s => scores[s] = 0);
+
+            // Save order for language switching
+            savedQuestionOrder = questions.map(q => loc.questions.findIndex(lq => lq.id === q.id));
+            savedOptionOrders = questions.map((q, qi) => {
+                const origQ = loc.questions.find(lq => lq.id === q.id);
+                return q.options.map(o => origQ.options.findIndex(lo => lo.text === o.text));
+            });
+
+            // Switch pages
+            document.getElementById('selectorPage').style.display = 'none';
+            document.getElementById('testPage').style.display = 'block';
+
+            initTestUI();
+        }
+
+        function backToSelector() {
+            document.getElementById('selectorPage').style.display = 'block';
+            document.getElementById('testPage').style.display = 'none';
+            document.getElementById('resultContainer').style.display = 'none';
+        }
 
         function initTestUI() {
             const container = document.getElementById('questionsContainer');
@@ -512,24 +607,7 @@
         }
 
         function restartTest() {
-            resultsShown = false;
-            currentQuestion = 0;
-            answers = Array(Q_COUNT).fill(null);
-            ALL_SCHOOLS.forEach(s => scores[s] = 0);
-            // Re-shuffle: clear saved order and reload locale
-            savedQuestionOrder = null;
-            savedOptionOrders = null;
-            loadLocale(lang, false).then(() => {
-                initTestUI();
-                document.querySelector('#question0').style.display = 'block';
-                document.querySelector('.buttons').style.display = 'flex';
-                document.getElementById('prevBtn').disabled = true;
-                document.getElementById('nextBtn').disabled = true;
-                document.getElementById('nextBtn').textContent = t('buttons.next');
-                document.getElementById('resultContainer').style.display = 'none';
-                updateProgress();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
+            backToSelector();
         }
 
         // ─── CTA ───
