@@ -19,7 +19,7 @@
     "web-app"
   ],
   "author": "Ssilith",
-  "license": "Proprietary \u2014 All Rights Reserved. Commercial use requires royalties. See LICENSE.",
+  "license": "Proprietary — All Rights Reserved. Commercial use requires royalties. See LICENSE.",
   "repository": {
     "type": "git",
     "url": "https://github.com/Akoilka/therapy-funnel.git"
@@ -32,12 +32,13 @@
     "serve": "^14.0.0"
   },
   "dependencies": {
-    "pg": "^8.13.0",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.0",
-    "express": "^4.18.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "express": "^4.18.0",
+    "jsonwebtoken": "^9.0.0",
+    "pg": "^8.13.0",
+    "resend": "^6.17.1"
   },
   "engines": {
     "node": ">=16.0.0"

@@ -462,6 +462,9 @@
   },
   "chat": {
     "title": "AI Guide — Therapy Void",
+    "navHome": "Home",
+    "navTest": "Quiz",
+    "navChat": "AI Chat",
     "headerName": "AI Guide",
     "headerGestalt": "AI Gestalt",
     "headerCbt": "AI CBT",
@@ -498,6 +501,19 @@
     "backTitle": "Back",
     "tos": "Terms of Service",
     "privacy": "Privacy Policy",
-    "freeBadge": "Free · Messages left: {left}"
+    "freeBadge": "Free · Messages left: {left}",
+    "trialWelcome": "Try AI chat — 5 free messages, no registration needed.",
+    "trialLeft": "Trial messages left: {left}",
+    "trialExhaustedTitle": "Enjoying the conversation?",
+    "trialExhaustedText": "Register to get 6 more messages + save your results.",
+    "trialRegisterBtn": "Register & Get +6 Messages",
+    "trialLoginBtn": "Already have an account? Sign in",
+    "analysisTitle": "Session Analysis",
+    "analysisLoading": "Analyzing your session...",
+    "analysisThemes": "Themes",
+    "analysisPattern": "Pattern",
+    "analysisRecommendation": "Recommendation",
+    "analysisUnlock": "Unlock full analysis + unlimited chat",
+    "analysisSaveBtn": "Save Results"
   }
 }

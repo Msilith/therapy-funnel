@@ -6,6 +6,8 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const { Resend } = require('resend');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,6 +15,12 @@ const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://localhost:5432/th
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-change-in-production';
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
 const DEEPSEEK_BASE = 'https://api.deepseek.com/v1';
+const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_Lfcf4fJF_FbGaUgjRsU4neJ6LMmj1zDoH';
+
+const resend = new Resend(RESEND_API_KEY);
+const FROM_EMAIL = 'TherapyVoid <noreply@therapyvoid.com>';
+// Fallback для тестирования (Resend даёт onboarding@resend.dev для верифицированных)
+const FROM_EMAIL_DEV = 'TherapyVoid <onboarding@resend.dev>';
 
 // ─── PostgreSQL Pool (Neon) ───
 const pool = new Pool({
@@ -84,6 +92,24 @@ async function initDB() {
       CREATE TABLE IF NOT EXISTS chat_sessions (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id),
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS trial_sessions (
+        id SERIAL PRIMARY KEY,
+        trial_id TEXT UNIQUE NOT NULL,
+        message_count INTEGER DEFAULT 0,
+        max_messages INTEGER DEFAULT 5,
+        history JSONB DEFAULT '[]',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS email_codes (
+        id SERIAL PRIMARY KEY,
+        email TEXT NOT NULL,
+        code TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        used BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
     `);
@@ -259,6 +285,359 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('Auth me error:', err);
     res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// ─── Disposable email domains (basic blocklist) ───
+const DISPOSABLE_DOMAINS = new Set([
+  'mailinator.com', 'guerrillamail.com', 'tempmail.com', 'throwaway.email',
+  'yopmail.com', 'sharklasers.com', 'guerrillamailblock.com', 'grr.la',
+  'dispostable.com', 'trashmail.com', 'mailnesia.com', 'tempail.com',
+  'fakeinbox.com', '10minutemail.com', 'getairmail.com', 'mohmal.com',
+  'burnermail.io', 'temp-mail.org', 'inbox.testmail.app'
+]);
+
+function isDisposableEmail(email) {
+  const domain = email.split('@')[1]?.toLowerCase();
+  return DISPOSABLE_DOMAINS.has(domain);
+}
+
+// ─── Email Verification ───
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+app.post('/api/auth/send-code', rateLimiter(3, 300000), async (req, res) => {
+  const { email } = req.body;
+  if (!email || !isValidEmail(email)) {
+    return res.status(400).json({ error: 'Некорректный email' });
+  }
+  if (isDisposableEmail(email)) {
+    return res.status(400).json({ error: 'Используйте реальный email, а не одноразовый' });
+  }
+
+  try {
+    // Check if already registered
+    const exists = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (exists.rows.length > 0) {
+      return res.status(409).json({ error: 'Пользователь с таким email уже существует' });
+    }
+
+    const code = generateCode();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+
+    // Delete old codes for this email
+    await pool.query('DELETE FROM email_codes WHERE email = $1', [email]);
+    // Insert new code
+    await pool.query(
+      'INSERT INTO email_codes (email, code, expires_at) VALUES ($1, $2, $3)',
+      [email, code, expiresAt]
+    );
+
+    // Send email via Resend
+    try {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        subject: 'Код подтверждения — TherapyVoid',
+        html: `
+          <div style="font-family:sans-serif;max-width:400px;margin:0 auto;padding:40px 20px;text-align:center;">
+            <h2 style="color:#166088;">TherapyVoid</h2>
+            <p style="color:#666;font-size:16px;">Ваш код подтверждения:</p>
+            <div style="background:#f5f7fa;border-radius:12px;padding:20px;margin:20px 0;">
+              <span style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#343a40;">${code}</span>
+            </div>
+            <p style="color:#999;font-size:14px;">Код действителен 10 минут.</p>
+            <p style="color:#999;font-size:12px;margin-top:30px;">Если вы не запрашивали код — игнорируйте это письмо.</p>
+          </div>
+        `
+      });
+    } catch (emailErr) {
+      // If custom domain fails, try with dev address
+      console.error('Email send error (primary):', emailErr.message);
+      try {
+        await resend.emails.send({
+          from: FROM_EMAIL_DEV,
+          to: email,
+          subject: 'Код подтверждения — TherapyVoid',
+          html: `
+            <div style="font-family:sans-serif;max-width:400px;margin:0 auto;padding:40px 20px;text-align:center;">
+              <h2 style="color:#166088;">TherapyVoid</h2>
+              <p style="color:#666;font-size:16px;">Ваш код подтверждения:</p>
+              <div style="background:#f5f7fa;border-radius:12px;padding:20px;margin:20px 0;">
+                <span style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#343a40;">${code}</span>
+              </div>
+              <p style="color:#999;font-size:14px;">Код действителен 10 минут.</p>
+            </div>
+          `
+        });
+      } catch (emailErr2) {
+        console.error('Email send error (fallback):', emailErr2.message);
+        return res.status(500).json({ error: 'Не удалось отправить код. Попробуйте позже.' });
+      }
+    }
+
+    res.json({ success: true, message: 'Код отправлен на ' + email });
+  } catch (err) {
+    console.error('Send code error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.post('/api/auth/verify', rateLimiter(10, 300000), async (req, res) => {
+  const { email, code, password, trialId } = req.body;
+  if (!email || !code || !password) {
+    return res.status(400).json({ error: 'Email, код и пароль обязательны' });
+  }
+  if (password.length < 4) {
+    return res.status(400).json({ error: 'Пароль минимум 4 символа' });
+  }
+
+  try {
+    // Verify code
+    const codeResult = await pool.query(
+      'SELECT * FROM email_codes WHERE email = $1 AND code = $2 AND used = FALSE AND expires_at > NOW()',
+      [email, code]
+    );
+    if (codeResult.rows.length === 0) {
+      return res.status(400).json({ error: 'Неверный или истёкший код' });
+    }
+
+    // Mark code as used
+    await pool.query('UPDATE email_codes SET used = TRUE WHERE id = $1', [codeResult.rows[0].id]);
+
+    // Create user
+    const hash = bcrypt.hashSync(password, 10);
+    const userResult = await pool.query(
+      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, tier, trial_sessions_left',
+      [email, hash]
+    );
+    const newUser = userResult.rows[0];
+
+    // If trialId exists, migrate trial data to user
+    if (trialId) {
+      try {
+        const trialResult = await pool.query(
+          'SELECT history FROM trial_sessions WHERE trial_id = $1',
+          [trialId]
+        );
+        if (trialResult.rows.length > 0 && trialResult.rows[0].history) {
+          // Store trial results if any
+          const trialHistory = trialResult.rows[0].history;
+          if (trialHistory.length > 0) {
+            // Link any saved results to this user
+            await pool.query(
+              'UPDATE results SET user_id = $1 WHERE user_id IS NULL AND created_at > NOW() - INTERVAL \'1 hour\'',
+              [newUser.id]
+            );
+          }
+        }
+        // Delete trial session
+        await pool.query('DELETE FROM trial_sessions WHERE trial_id = $1', [trialId]);
+      } catch (migErr) {
+        console.error('Trial migration error:', migErr.message);
+      }
+    }
+
+    const user = {
+      id: newUser.id,
+      email: newUser.email,
+      tier: newUser.tier,
+      trialSessionsLeft: newUser.trial_sessions_left
+    };
+    const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(201).json({ token, user });
+  } catch (err) {
+    console.error('Verify error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// ─── Anonymous Trial Chat ───
+app.post('/api/chat-trial', rateLimiter(20, 60000), async (req, res) => {
+  const { message, history, mode, trialId } = req.body;
+  if (!message || !trialId) {
+    return res.status(400).json({ error: 'Сообщение и trialId обязательны' });
+  }
+
+  const selectedPrompt = PROMPTS[mode] || GESTALT_PROMPT;
+
+  try {
+    // Get or create trial session
+    let trial = await pool.query(
+      'SELECT * FROM trial_sessions WHERE trial_id = $1',
+      [trialId]
+    );
+
+    if (trial.rows.length === 0) {
+      await pool.query(
+        'INSERT INTO trial_sessions (trial_id, message_count, history) VALUES ($1, 0, $2)',
+        [trialId, JSON.stringify([])]
+      );
+      trial = await pool.query('SELECT * FROM trial_sessions WHERE trial_id = $1', [trialId]);
+    }
+
+    const trialData = trial.rows[0];
+
+    if (trialData.message_count >= trialData.max_messages) {
+      return res.status(402).json({
+        error: 'Пробные сообщения закончились',
+        code: 'TRIAL_EXHAUSTED',
+        message: 'Вы использовали 5 бесплатных сообщений. Зарегистрируйтесь, чтобы получить ещё 6!'
+      });
+    }
+
+    // Guard check
+    try {
+      const guardRes = await fetch(`${DEEPSEEK_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-v4-flash',
+          messages: [
+            { role: 'system', content: GUARD_PROMPT },
+            { role: 'user', content: message }
+          ],
+          max_tokens: 3,
+          temperature: 0
+        })
+      });
+
+      if (guardRes.ok) {
+        const guardData = await guardRes.json();
+        const verdict = (guardData.choices?.[0]?.message?.content || '').trim().toUpperCase();
+        if (verdict === 'NO') {
+          return res.json({
+            reply: 'Я здесь только для психотерапевтических бесед. Если у вас есть запрос, связанный с чувствами, переживаниями или отношениями — я рядом.',
+            model: 'deepseek-v4-flash',
+            rejected: true,
+            trialLeft: trialData.max_messages - trialData.message_count
+          });
+        }
+      }
+    } catch (_) { /* guard failed, proceed */ }
+
+    // Call DeepSeek
+    const messages = [
+      { role: 'system', content: selectedPrompt },
+      ...(Array.isArray(history) ? history : []),
+      { role: 'user', content: message }
+    ];
+
+    const response = await fetch(`${DEEPSEEK_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-v4-flash',
+        messages,
+        max_tokens: 1024,
+        temperature: 0.7
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('DeepSeek API error:', response.status, err);
+      return res.status(502).json({ error: 'Ошибка AI-сервера, попробуйте позже' });
+    }
+
+    const data = await response.json();
+    const reply = data.choices?.[0]?.message?.content || '...';
+
+    // Update trial session
+    const newCount = trialData.message_count + 1;
+    const updatedHistory = [
+      ...(Array.isArray(trialData.history) ? trialData.history : []),
+      { role: 'user', content: message },
+      { role: 'assistant', content: reply }
+    ];
+
+    await pool.query(
+      'UPDATE trial_sessions SET message_count = $1, history = $2 WHERE trial_id = $3',
+      [newCount, JSON.stringify(updatedHistory), trialId]
+    );
+
+    res.json({
+      reply,
+      model: 'deepseek-v4-flash',
+      trialLeft: trialData.max_messages - newCount
+    });
+  } catch (err) {
+    console.error('Trial chat error:', err);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+});
+
+// ─── Session Analysis (mini) ───
+app.post('/api/session-analysis', rateLimiter(5, 300000), async (req, res) => {
+  const { history, mode, trialId } = req.body;
+  if (!history || !Array.isArray(history) || history.length === 0) {
+    return res.status(400).json({ error: 'История чата обязательна' });
+  }
+
+  try {
+    const analysisPrompt = `Ты — психолог-аналитик. Проанализируй эту терапевтическую сессию кратко.
+
+Формат ответа (строго JSON):
+{
+  "themes": ["тема1", "тема2"],
+  "pattern": "Основной эмоциональный паттерн (1-2 предложения)",
+  "recommendation": "Одна конкретная рекомендация (1-2 предложения)",
+  "preview": "Краткое резюме сессии (2-3 предложения для превью)"
+}
+
+Ответи ТОЛЬКО валидным JSON, без markdown.`;
+
+    const messages = [
+      { role: 'system', content: analysisPrompt },
+      ...history.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }))
+    ];
+
+    const response = await fetch(`${DEEPSEEK_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-v4-flash',
+        messages,
+        max_tokens: 512,
+        temperature: 0.5
+      })
+    });
+
+    if (!response.ok) {
+      return res.status(502).json({ error: 'Ошибка AI-сервера' });
+    }
+
+    const data = await response.json();
+    const raw = data.choices?.[0]?.message?.content || '{}';
+
+    let analysis;
+    try {
+      analysis = JSON.parse(raw);
+    } catch {
+      // If JSON parsing fails, create a basic response
+      analysis = {
+        themes: [],
+        pattern: raw.slice(0, 200),
+        recommendation: '',
+        preview: raw.slice(0, 300)
+      };
+    }
+
+    res.json({ analysis });
+  } catch (err) {
+    console.error('Analysis error:', err);
+    res.status(500).json({ error: 'Ошибка анализа' });
   }
 });
 

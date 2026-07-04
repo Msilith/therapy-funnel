@@ -141,11 +141,11 @@
             .btn-prev, .btn-next { padding: 12px 6px; font-size: 0.85rem; }
         }
     </style>
-    <link rel="icon" href="images/sigil-new-16x16.jpg" type="image/jpeg" sizes="16x16">
-    <link rel="icon" href="images/sigil-new-32x32.jpg" type="image/jpeg" sizes="32x32">
-    <link rel="icon" href="images/sigil-new-48x48.jpg" type="image/jpeg" sizes="48x48">
-    <link rel="icon" href="images/sigil-new-64x64.jpg" type="image/jpeg" sizes="64x64">
-    <link rel="apple-touch-icon" href="images/sigil-new-64x64.jpg">
+    <link rel="icon" href="images/icon-16x16.jpg" type="image/jpeg" sizes="16x16">
+    <link rel="icon" href="images/icon-32x32.jpg" type="image/jpeg" sizes="32x32">
+    <link rel="icon" href="images/icon-48x48.jpg" type="image/jpeg" sizes="48x48">
+    <link rel="icon" href="images/icon-64x64.jpg" type="image/jpeg" sizes="64x64">
+    <link rel="apple-touch-icon" href="images/icon-64x64.jpg">
     <meta name="theme-color" content="#8b0000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -155,7 +155,7 @@
     <!-- Top Navigation -->
     <nav class="topnav">
         <div class="topnav-inner">
-            <span class="brand"><img src="images/sigil-new-32x32.jpg" alt="">Therapy Void</span>
+            <span class="brand"><img src="images/icon-32x32.jpg" alt="">Therapy Void</span>
             <a href="home.html" data-i18n="nav.home">Главная</a>
             <a href="index.html" class="active" data-i18n="nav.test">Тест</a>
             <a href="chat.html" data-i18n="nav.chat">AI-беседа</a>
@@ -164,7 +164,7 @@
 
     <div class="container">
         <header>
-            <h1><img src="images/sigil-new-72x72.jpg" class="logo" alt="Sigil"> <span data-i18n="heading">Создай своего героя</span></h1>
+            <h1><img src="images/icon-72x72.jpg" class="logo" alt="TherapyVoid"> <span data-i18n="heading">Создай своего героя</span></h1>
             <p class="subtitle" data-i18n="subtitle">Десять вопросов — и ты узнаешь, какой подход к самопознанию тебе ближе.</p>
             <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
             <div id="progressText" data-i18n="progress" data-i18n-args='{"current":1,"total":10}'>Вопрос 1 из 10</div>
@@ -231,7 +231,11 @@
             return a;
         }
 
-        async function loadLocale(l) {
+        // Saved question order (indices) for consistent language switching
+        let savedQuestionOrder = null;
+        let savedOptionOrders = null;
+
+        async function loadLocale(l, preserveOrder) {
             try {
                 const res = await fetch(`locales/${l}.json`);
                 loc = await res.json();
@@ -242,21 +246,36 @@
                 // Build data from locale
                 schools = {};
                 heroProfiles = {};
-                questions = [];
                 for (const code of ALL_SCHOOLS) {
                     schools[code] = loc.schools[code];
                     heroProfiles[code] = loc.heroes[code];
                 }
-                // Shuffle questions, then shuffle options within each question
-                const rawQuestions = shuffle(loc.questions.map((q, qi) => ({
-                    id: qi,
-                    text: q.text,
-                    options: shuffle(q.options.map((o, oi) => ({
-                        text: o.text,
-                        school: o.school
-                    })))
-                })));
-                questions = rawQuestions;
+
+                if (preserveOrder && savedQuestionOrder && savedOptionOrders) {
+                    // Restore same order — just update text, don't re-shuffle
+                    questions = savedQuestionOrder.map(qi => ({
+                        id: qi,
+                        text: loc.questions[qi].text,
+                        options: savedOptionOrders[qi].map(oi => ({
+                            text: loc.questions[qi].options[oi].text,
+                            school: loc.questions[qi].options[oi].school
+                        }))
+                    }));
+                } else {
+                    // First load — shuffle and save the order
+                    const qOrder = shuffle(loc.questions.map((_, i) => i));
+                    const optOrders = loc.questions.map(q => shuffle(q.options.map((_, i) => i)));
+                    savedQuestionOrder = qOrder;
+                    savedOptionOrders = optOrders;
+                    questions = qOrder.map(qi => ({
+                        id: qi,
+                        text: loc.questions[qi].text,
+                        options: optOrders[qi].map(oi => ({
+                            text: loc.questions[qi].options[oi].text,
+                            school: loc.questions[qi].options[oi].school
+                        }))
+                    }));
+                }
 
                 document.title = loc.site.title;
                 updateStaticText();
@@ -279,7 +298,7 @@
         }
 
         function switchLang(l) {
-            loadLocale(l).then(() => {
+            loadLocale(l, true).then(() => {
                 if (resultsShown) {
                     showResults();
                 } else {
@@ -497,21 +516,20 @@
             currentQuestion = 0;
             answers = Array(Q_COUNT).fill(null);
             ALL_SCHOOLS.forEach(s => scores[s] = 0);
-            // Re-shuffle questions and options
-            const rawQuestions = shuffle(loc.questions.map(q => ({
-                text: q.text,
-                options: shuffle(q.options.map(o => ({ text: o.text, school: o.school })))
-            })));
-            questions = rawQuestions;
-            initTestUI();
-            document.querySelector('#question0').style.display = 'block';
-            document.querySelector('.buttons').style.display = 'flex';
-            document.getElementById('prevBtn').disabled = true;
-            document.getElementById('nextBtn').disabled = true;
-            document.getElementById('nextBtn').textContent = t('buttons.next');
-            document.getElementById('resultContainer').style.display = 'none';
-            updateProgress();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Re-shuffle: clear saved order and reload locale
+            savedQuestionOrder = null;
+            savedOptionOrders = null;
+            loadLocale(lang, false).then(() => {
+                initTestUI();
+                document.querySelector('#question0').style.display = 'block';
+                document.querySelector('.buttons').style.display = 'flex';
+                document.getElementById('prevBtn').disabled = true;
+                document.getElementById('nextBtn').disabled = true;
+                document.getElementById('nextBtn').textContent = t('buttons.next');
+                document.getElementById('resultContainer').style.display = 'none';
+                updateProgress();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
         }
 
         // ─── CTA ───
@@ -536,7 +554,8 @@
         }
 
         function startChat() {
-            window.location.href = localStorage.getItem('tf_token') ? 'chat.html' : 'auth.html?redirect=chat';
+            // Always go to chat — trial mode handles unauthenticated users
+            window.location.href = 'chat.html';
         }
 
         function getApiBase() {

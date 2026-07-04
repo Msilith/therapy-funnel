@@ -462,6 +462,9 @@
   },
   "chat": {
     "title": "AI-наставник — Therapy Void",
+    "navHome": "Главная",
+    "navTest": "Тест",
+    "navChat": "AI-беседа",
     "headerName": "AI Наставник",
     "headerGestalt": "AI Гештальт",
     "headerCbt": "AI КПТ",
@@ -498,6 +501,19 @@
     "backTitle": "Назад",
     "tos": "Условия использования",
     "privacy": "Конфиденциальность",
-    "freeBadge": "Бесплатно · Сообщений: {left}"
+    "freeBadge": "Бесплатно · Сообщений: {left}",
+    "trialWelcome": "Попробуйте AI-беседу — 5 бесплатных сообщений без регистрации.",
+    "trialLeft": "Пробных сообщений: {left}",
+    "trialExhaustedTitle": "Понравилось общение?",
+    "trialExhaustedText": "Зарегистрируйтесь, чтобы получить ещё 6 сообщений и сохранить результаты.",
+    "trialRegisterBtn": "Зарегистрироваться и получить +6",
+    "trialLoginBtn": "Уже есть аккаунт? Войти",
+    "analysisTitle": "Анализ сессии",
+    "analysisLoading": "Анализируем вашу сессию...",
+    "analysisThemes": "Темы",
+    "analysisPattern": "Паттерн",
+    "analysisRecommendation": "Рекомендация",
+    "analysisUnlock": "Открыть полный анализ и безлимит",
+    "analysisSaveBtn": "Сохранить результаты"
   }
 }

@@ -62,19 +62,19 @@
             .cards { grid-template-columns:1fr; }
         }
     </style>
-    <link rel="icon" href="images/sigil-new-16x16.jpg" type="image/jpeg" sizes="16x16">
-    <link rel="icon" href="images/sigil-new-32x32.jpg" type="image/jpeg" sizes="32x32">
-    <link rel="apple-touch-icon" href="images/sigil-new-64x64.jpg">
+    <link rel="icon" href="images/icon-16x16.jpg" type="image/jpeg" sizes="16x16">
+    <link rel="icon" href="images/icon-32x32.jpg" type="image/jpeg" sizes="32x32">
+    <link rel="apple-touch-icon" href="images/icon-64x64.jpg">
     <meta name="theme-color" content="#8b0000">
 </head>
 <body>
 
     <nav class="topnav">
         <div class="topnav-inner">
-            <span class="brand"><img src="images/sigil-new-32x32.jpg" alt="">Therapy Void</span>
-            <a href="home.html" class="active">Главная</a>
-            <a href="index.html">Тест</a>
-            <a href="chat.html">AI-беседа</a>
+            <span class="brand"><img src="images/icon-32x32.jpg" alt="">Therapy Void</span>
+            <a href="home.html" class="active" id="navHome">Главная</a>
+            <a href="index.html" id="navTest">Тест</a>
+            <a href="chat.html" id="navChat">AI-беседа</a>
         </div>
     </nav>
 
@@ -166,8 +166,17 @@
             function switchLang(l) { localStorage.setItem('tf_lang',l); window.location.href = 'home.html?lang=' + l; }
             // Set select to saved language
             const saved = localStorage.getItem('tf_lang') || 'ru';
-            document.querySelector('select').value = saved;
+            document.querySelectorAll('select').forEach(s => s.value = saved);
             document.documentElement.lang = saved;
+            // Translate nav
+            const navI18n = {
+                ru: { home: 'Главная', test: 'Тест', chat: 'AI-беседа' },
+                en: { home: 'Home', test: 'Quiz', chat: 'AI Chat' }
+            };
+            const nav = navI18n[saved] || navI18n.ru;
+            document.getElementById('navHome').textContent = nav.home;
+            document.getElementById('navTest').textContent = nav.test;
+            document.getElementById('navChat').textContent = nav.chat;
         </script>
     </footer>
 </body>

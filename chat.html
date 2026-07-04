@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://therapy-funnel.onrender.com https://api.deepseek.com; img-src 'self' data:;">
     <title>AI-терапевт — Therapy Funnel</title>
+    <link rel="icon" href="images/icon-16x16.jpg" type="image/jpeg" sizes="16x16">
+    <link rel="icon" href="images/icon-32x32.jpg" type="image/jpeg" sizes="32x32">
+    <link rel="apple-touch-icon" href="images/icon-64x64.jpg">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
@@ -155,9 +158,9 @@
     <nav class="topnav">
         <div class="topnav-inner">
             <span class="brand">Therapy Void</span>
-            <a href="home.html">Главная</a>
-            <a href="index.html">Тест</a>
-            <a href="chat.html" class="active">AI-беседа</a>
+            <a href="home.html" id="navHome">Главная</a>
+            <a href="index.html" id="navTest">Тест</a>
+            <a href="chat.html" class="active" id="navChat">AI-беседа</a>
         </div>
     </nav>
 
@@ -220,6 +223,9 @@
                 document.getElementById('headerName').textContent = ct(hKey) || ct('headerName');
                 document.getElementById('modelStatus').textContent = ct('modelDefault');
                 document.getElementById('backBtn').title = ct('backTitle');
+                document.getElementById('navHome').textContent = ct('navHome');
+                document.getElementById('navTest').textContent = ct('navTest');
+                document.getElementById('navChat').textContent = ct('navChat');
                 document.getElementById('footerTos').textContent = ct('tos');
                 document.getElementById('footerPrivacy').textContent = ct('privacy');
             } catch(e) {}
@@ -228,6 +234,8 @@
         let messages = [];
         let user = null;
         let trialLeft = null;
+        let trialId = null;
+        let isTrialMode = false;
         let chatMode = 'gestalt';
 
         // Map school code from test to chat mode
@@ -241,12 +249,20 @@
             'I': 'islamic'
         };
 
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0;
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
+        }
+
         function checkAuth() {
             const token = localStorage.getItem('tf_token');
             const userData = localStorage.getItem('tf_user');
             if (!token || !userData) return false;
             try {
                 user = JSON.parse(userData);
+                isTrialMode = false;
                 fetch(`${CHAT_API_BASE}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(r => r.json()).then(data => {
@@ -257,6 +273,16 @@
             } catch { return false; }
         }
 
+        function initTrial() {
+            trialId = localStorage.getItem('tf_trial_id');
+            if (!trialId) {
+                trialId = generateUUID();
+                localStorage.setItem('tf_trial_id', trialId);
+            }
+            trialLeft = parseInt(localStorage.getItem('tf_trial_left') || '5');
+            isTrialMode = true;
+        }
+
         function logout() {
             localStorage.removeItem('tf_token');
             localStorage.removeItem('tf_user');
@@ -265,39 +291,43 @@
         }
 
         function updateUI() {
-            if (!user) return;
-            // Set header name based on mode
+            const badge = document.getElementById('tierBadge');
+            const status = document.getElementById('modelStatus');
             const headerKey = 'header' + chatMode.charAt(0).toUpperCase() + chatMode.slice(1);
             document.getElementById('headerName').textContent = ct(headerKey) || ct('headerName');
 
-            const badge = document.getElementById('tierBadge');
-            const status = document.getElementById('modelStatus');
-            if (user.tier === 'pro') {
-                badge.textContent = ct('tierPro');
-                badge.className = 'tier-badge tier-pro';
-                status.textContent = ct('modelPro');
-            } else {
+            if (isTrialMode) {
                 badge.textContent = ct('tierFree');
                 badge.className = 'tier-badge tier-free';
-                const left = trialLeft !== null ? trialLeft : user.trialSessionsLeft;
-                status.textContent = `${ct('modelDefault')} · ${ct('sessionsLeft')}: ${left ?? '?'}`;
-            }
-            if (trialLeft === 0 && user.tier !== 'pro') {
-                document.getElementById('upgradeBanner').textContent = ct('trialExhausted');
-                document.getElementById('upgradeBanner').classList.add('show');
+                status.textContent = `${ct('modelDefault')} · ${ct('trialLeft', {left: trialLeft})}`;
+            } else if (user) {
+                if (user.tier === 'pro') {
+                    badge.textContent = ct('tierPro');
+                    badge.className = 'tier-badge tier-pro';
+                    status.textContent = ct('modelPro');
+                } else {
+                    badge.textContent = ct('tierFree');
+                    badge.className = 'tier-badge tier-free';
+                    const left = trialLeft !== null ? trialLeft : user.trialSessionsLeft;
+                    status.textContent = `${ct('modelDefault')} · ${ct('sessionsLeft')}: ${left ?? '?'}`;
+                }
+                if (trialLeft === 0 && user.tier !== 'pro') {
+                    document.getElementById('upgradeBanner').textContent = ct('trialExhausted');
+                    document.getElementById('upgradeBanner').classList.add('show');
+                }
             }
 
-            // Update badge too (sync with status)
+            // Update badge element
             const badgeEl = document.getElementById('freeBadgeEl');
             if (badgeEl) {
-                const left = trialLeft !== null ? trialLeft : user.trialSessionsLeft;
-                badgeEl.textContent = ct('freeBadge', {left});
+                const left = isTrialMode ? trialLeft : (trialLeft ?? user?.trialSessionsLeft);
+                badgeEl.textContent = isTrialMode ? ct('trialLeft', {left}) : ct('freeBadge', {left});
             }
         }
 
         function renderChat() {
             const contentArea = document.getElementById('contentArea');
-            if (!user) {
+            if (!user && !isTrialMode) {
                 contentArea.innerHTML = `
                     <div class="login-prompt">
                         <div class="emoji">🌿</div>
@@ -308,18 +338,20 @@
                 return;
             }
             if (messages.length === 0) {
-                const left = trialLeft ?? user.trialSessionsLeft;
-                const freeBadge = user.tier === 'pro' ? `Pro · ${ct('modelPro')}` : ct('freeBadge', {left});
+                const left = isTrialMode ? trialLeft : (trialLeft ?? user?.trialSessionsLeft);
+                const freeBadge = isTrialMode ? ct('trialLeft', {left}) : (user?.tier === 'pro' ? `Pro · ${ct('modelPro')}` : ct('freeBadge', {left}));
                 const wKey = 'welcome' + chatMode.charAt(0).toUpperCase() + chatMode.slice(1);
                 const eKey = 'emoji' + chatMode.charAt(0).toUpperCase() + chatMode.slice(1);
                 const wText = ct(wKey) || ct('welcomeText');
                 const emoji = ct(eKey) || '🌿';
+                const trialNotice = isTrialMode ? `<p style="font-size:0.8rem; color:#166088; margin-top:8px;">${ct('trialWelcome')}</p>` : '';
                 contentArea.innerHTML = `
                     <div class="chat-messages" id="chatMessages">
                         <div class="empty-state">
                             <div class="emoji">${emoji}</div>
                             <h3>${ct('welcomeTitle')}</h3>
                             <p>${wText}</p>
+                            ${trialNotice}
                             <p style="font-size:0.75rem; color:#aaa; margin-top:10px;" id="freeBadgeEl">${freeBadge}</p>
                         </div>
                     </div>
@@ -370,8 +402,14 @@
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
             if (!text) return;
-            const token = localStorage.getItem('tf_token');
-            if (!token) { logout(); renderChat(); return; }
+
+            // Check if we're in trial mode or authenticated
+            if (!isTrialMode && !localStorage.getItem('tf_token')) {
+                logout();
+                renderChat();
+                return;
+            }
+
             input.value = '';
             input.style.height = 'auto';
             document.getElementById('sendBtn').disabled = true;
@@ -384,26 +422,55 @@
             typingEl.innerHTML = '<span>●</span><span>●</span><span>●</span>';
             msgContainer.appendChild(typingEl);
             msgContainer.scrollTop = msgContainer.scrollHeight;
+
             try {
                 const history = messages.slice(0, -1).filter(m => m.role !== 'system');
-                const res = await fetch(`${CHAT_API_BASE}/api/chat`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ message: text, history, mode: chatMode })
-                });
+                let res, data;
+
+                if (isTrialMode) {
+                    // Trial mode: use /api/chat-trial
+                    res = await fetch(`${CHAT_API_BASE}/api/chat-trial`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: text, history, mode: chatMode, trialId })
+                    });
+                } else {
+                    // Authenticated mode: use /api/chat
+                    const token = localStorage.getItem('tf_token');
+                    res = await fetch(`${CHAT_API_BASE}/api/chat`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ message: text, history, mode: chatMode })
+                    });
+                }
+
                 typingEl.remove();
-                const data = await res.json();
+                data = await res.json();
+
                 if (!res.ok) {
                     if (data.code === 'TRIAL_EXHAUSTED') {
                         trialLeft = 0;
-                        messages.push({ role: 'system', content: ct('trialExhausted') });
+                        localStorage.setItem('tf_trial_left', '0');
+                        if (isTrialMode) {
+                            showTrialExhaustedModal();
+                        } else {
+                            messages.push({ role: 'system', content: ct('trialExhausted') });
+                        }
                     } else {
                         messages.push({ role: 'system', content: `⚠️ ${data.error || ct('errorServer')}` });
                     }
                 } else {
                     messages.push({ role: 'assistant', content: data.reply });
-                    if (data.trialSessionsLeft !== null && data.trialSessionsLeft !== undefined) {
+                    if (isTrialMode && data.trialLeft !== undefined) {
+                        trialLeft = data.trialLeft;
+                        localStorage.setItem('tf_trial_left', String(data.trialLeft));
+                    } else if (data.trialSessionsLeft !== null && data.trialSessionsLeft !== undefined) {
                         trialLeft = data.trialSessionsLeft;
+                    }
+
+                    // After 11 messages (5 trial + 6 registered), show analysis
+                    if (!isTrialMode && user && user.tier === 'free' && trialLeft === 0) {
+                        showAnalysisOffer();
                     }
                 }
                 updateUI();
@@ -417,9 +484,70 @@
             document.getElementById('chatInput').focus();
         }
 
+        function showTrialExhaustedModal() {
+            const contentArea = document.getElementById('contentArea');
+            // Add exhausted message
+            messages.push({ role: 'system', content: '💬 5 бесплатных сообщений использовано.' });
+            renderChat();
+
+            // Show modal overlay
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;';
+            modal.innerHTML = `
+                <div style="background:white;border-radius:16px;padding:32px;max-width:380px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+                    <div style="font-size:3rem;margin-bottom:12px;">🌿</div>
+                    <h2 style="color:#166088;margin-bottom:8px;">${ct('trialExhaustedTitle')}</h2>
+                    <p style="color:#666;margin-bottom:24px;line-height:1.5;">${ct('trialExhaustedText')}</p>
+                    <a href="auth.html?redirect=chat" style="display:block;background:#4a6fa5;color:white;padding:16px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1.1rem;margin-bottom:12px;">${ct('trialRegisterBtn')}</a>
+                    <a href="auth.html?redirect=chat" style="color:#888;font-size:0.9rem;text-decoration:none;">${ct('trialLoginBtn')}</a>
+                </div>`;
+            document.body.appendChild(modal);
+        }
+
+        async function showAnalysisOffer() {
+            // Show analysis loading
+            const analysisMsg = { role: 'system', content: `📊 ${ct('analysisLoading')}` };
+            messages.push(analysisMsg);
+            renderChat();
+
+            try {
+                const history = messages.filter(m => m.role !== 'system').map(m => ({
+                    role: m.role,
+                    content: m.content
+                }));
+
+                const res = await fetch(`${CHAT_API_BASE}/api/session-analysis`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ history, mode: chatMode })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const a = data.analysis;
+
+                    // Replace loading message with analysis
+                    const idx = messages.indexOf(analysisMsg);
+                    if (idx !== -1) {
+                        const themes = (a.themes || []).join(', ');
+                        messages[idx] = {
+                            role: 'system',
+                            content: `📊 ${ct('analysisTitle')}\n\n${ct('analysisThemes')}: ${themes}\n${ct('analysisPattern')}: ${a.pattern || ''}\n${ct('analysisRecommendation')}: ${a.recommendation || ''}`
+                        };
+                    }
+                    renderChat();
+                }
+            } catch (err) {
+                console.error('Analysis error:', err);
+            }
+        }
+
         // Init
         loadChatLocale().then(() => {
-            if (checkAuth()) { renderChat(); } else { renderChat(); }
+            if (!checkAuth()) {
+                initTrial();
+            }
+            renderChat();
         });
     </script>
 </body>
