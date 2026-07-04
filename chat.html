@@ -490,6 +490,10 @@
             messages.push({ role: 'system', content: '💬 5 бесплатных сообщений использовано.' });
             renderChat();
 
+            // Save chat history to localStorage before redirect
+            localStorage.setItem('tf_trial_chat_history', JSON.stringify(messages));
+            localStorage.setItem('tf_trial_chat_mode', chatMode);
+
             // Show modal overlay
             const modal = document.createElement('div');
             modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;';
@@ -544,9 +548,25 @@
 
         // Init
         loadChatLocale().then(() => {
+            const savedHistory = localStorage.getItem('tf_trial_chat_history');
+            const savedMode = localStorage.getItem('tf_trial_chat_mode');
+
             if (!checkAuth()) {
                 initTrial();
             }
+
+            // Restore chat history from trial if exists
+            if (savedHistory) {
+                try {
+                    messages = JSON.parse(savedHistory);
+                    if (savedMode) chatMode = savedMode;
+                    localStorage.removeItem('tf_trial_chat_history');
+                    localStorage.removeItem('tf_trial_chat_mode');
+                    // Clear trial mode after restoration
+                    isTrialMode = false;
+                } catch(e) {}
+            }
+
             renderChat();
         });
     </script>
