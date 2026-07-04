@@ -2,6 +2,16 @@
 
 ---
 
+## v2.6.2 (05.07.2026)
+
+### Done
+- [x] Фикс i18n: heading и subtitle в index.html (header.heading, header.subtitle)
+- [x] Фикс i18n: footer и restart button в index.html
+- [x] Фикс i18n: tos и privacy в chat.html (добавлены в chat-секцию локалей)
+- [x] Фикс: передача языка из home.html в index.html через URL параметр
+
+---
+
 ## v2.6.1 (05.07.2026)
 
 ### Done
