@@ -2,6 +2,15 @@
 
 ---
 
+## v2.6.1 (05.07.2026)
+
+### Done
+- [x] Фикс: GitHub Pages кеш (добавлен cache-busting ?v=2)
+- [x] Фикс: БД дефолт trial_sessions_left изменён с 3 на 6
+- [x] Фикс: home.html блок «Как это работает» расширен на всю ширину
+
+---
+
 ## v2.6.0 (05.07.2026)
 
 ### Done
@@ -10,6 +19,8 @@
 - [x] Расширен пул вопросов до 15 (добавлены: критика, отношения, забота о теле, прошлое, будущее, одиночество, опора)
 - [x] i18n для предстраницы (selector)
 - [x] Кнопка «Назад к выбору формата»
+- [x] home.html полностью переведён на EN
+- [x] Обновлён подзаголовок: «Ответь на вопросы и познай тайны своей души»
 
 ---
 
@@ -25,22 +36,19 @@
 - [x] Мини-анализ сессии после 11 сообщений (/api/session-analysis)
 - [x] Модалка «Зарегистрируйтесь» после исчерпания триала
 - [x] Перенос данных триала при регистрации (trial_id)
+- [x] Сохранение истории чата при редиректе на регистрацию
 - [x] Документация (CHANGELOG.md, RESOURCES.md)
-
-### Known issues
-- auth.html: формы логина/регистрации не переведены (только навбар)
-- home.html: контент не переведён (только навбар)
-- Мини-анализ показывается только для авторизованных free-пользователей после 11 сообщений
+- [x] Новые DB таблицы: trial_sessions, email_codes
+- [x] Resend домен therapyvoid.com верифицирован
 
 ---
 
 ## v2.4.1 (22.05.2026) — Security Cleanup
 
-- Старый ключ DeepSeek `sk-ba29...` засвечен в git-истории (4 коммита)
+- Старый ключ DeepSeek `sk-ba29...` засвечен в git-истории
 - Убран из `server.js` → всё в `process.env.*`
 - Новый ключ в Render env vars, локальном `.env`, `models.json`
 - Старый ключ отозван на platform.deepseek.com
-- `.env` и `PROJECT_CREDS.md` в `.gitignore`
 
 ---
 
@@ -97,12 +105,11 @@
 
 | ID | Описание | Статус |
 |----|----------|--------|
-| BUG-001 | Шуфлинг вопросов при смене языка ломает ответы | Open |
-| BUG-002 | Навбар в chat.html не переведён | Open |
-| BUG-003 | auth.html не имеет i18n | Open |
-| BUG-004 | api.therapyvoid.com не работает (Render IP в запрещённом диапазоне CF) | Won't fix |
-| BUG-005 | Render засыпает после 15 мин (free tier) | Won't fix |
-| BUG-006 | Neon Console заблокирована из РФ | Won't fix |
+| BUG-001 | GitHub Pages кеширует долго | Workaround (?v=2) |
+| BUG-002 | auth.html формы не переведены на EN | Open |
+| BUG-003 | api.therapyvoid.com не работает | Won't fix |
+| BUG-004 | Render засыпает после 15 мин | Won't fix |
+| BUG-005 | Neon Console заблокирована из РФ | Won't fix |
 
 ---
 
@@ -114,25 +121,20 @@
 | Бэкенд | Express.js (Render Free) |
 | БД | Neon PostgreSQL (Free tier) |
 | AI | DeepSeek V4 Flash |
+| Email | Resend (3000 писем/мес) |
 | DNS | Cloudflare |
 | Домен | Cloudflare Registrar ($10/год) |
 
 ---
 
-## Архитектура данных
+## Env vars для Render
 
 ```
-users (id, email, password_hash, tier, trial_sessions_left, created_at)
-results (id, user_id→users, scores JSONB, hero, school_code, created_at)
-chat_sessions (id, user_id→users, created_at)
+NODE_ENV=production
+PORT=10000
+JWT_SECRET=tv-dragon-sigil-2026-secure-jwt-key-change-me
+DEEPSEEK_API_KEY=<в Render env vars>
+DATABASE_URL=postgresql://neondb_owner:REMOVED@ep-wispy-fog-ajr3efpi-pooler.c-3.us-east-2.aws.neon.tech/neondb?sslmode=require
+RESEND_API_KEY=re_7CPm7vCX_LpuLM1BsCzRjCUsb7HzJXpVq
+FROM_EMAIL=TherapyVoid <noreply@therapyvoid.com>
 ```
-
----
-
-## Триал-система
-
-- Незарегистрированные: **не могут открыть чат** (экран логина)
-- Free (зарегистрированные): **6 сообщений**, затем `TRIAL_EXHAUSTED`
-- Pro: безлимит (пока не реализован, заглушка)
-- Счётчик уменьшается на 1 за каждый ответ AI (не за каждое сообщение пользователя)
-- Guard-отказы (не-психологические запросы) **тоже** уменьшают счётчик — баг?
