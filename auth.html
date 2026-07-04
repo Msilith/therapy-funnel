@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://therapy-funnel.onrender.com https://api.deepseek.com; img-src 'self' data:;">
     <title>Вход — Therapy Funnel</title>
+    <link rel="icon" href="images/icon-16x16.jpg" type="image/jpeg" sizes="16x16">
+    <link rel="icon" href="images/icon-32x32.jpg" type="image/jpeg" sizes="32x32">
+    <link rel="apple-touch-icon" href="images/icon-64x64.jpg">
     <style>
         * {
             margin: 0; padding: 0; box-sizing: border-box;
@@ -80,9 +83,9 @@
     <nav class="topnav">
         <div class="topnav-inner">
             <span class="brand">Therapy Void</span>
-            <a href="home.html">Главная</a>
-            <a href="index.html">Тест</a>
-            <a href="chat.html">AI-беседа</a>
+            <a href="home.html" id="navHome">Главная</a>
+            <a href="index.html" id="navTest">Тест</a>
+            <a href="chat.html" id="navChat">AI-беседа</a>
         </div>
     </nav>
 
@@ -112,21 +115,36 @@
             <button type="submit" class="btn btn-primary">Войти</button>
         </form>
 
-        <!-- Register -->
-        <form id="registerForm" class="form" onsubmit="handleRegister(event)">
+        <!-- Register: Step 1 - Email -->
+        <form id="registerForm" class="form" onsubmit="handleSendCode(event)">
             <div class="field">
                 <label>Email</label>
                 <input type="email" id="regEmail" required autocomplete="email">
             </div>
+            <div class="info-box">
+                После регистрации вы получите <strong>6 пробных сообщений</strong> с AI-терапевтом.
+                Мы отправим код подтверждения на ваш email.
+            </div>
+            <button type="submit" class="btn btn-primary" id="sendCodeBtn">Получить код</button>
+        </form>
+
+        <!-- Register: Step 2 - Code + Password -->
+        <form id="verifyForm" class="form" onsubmit="handleVerify(event)">
+            <div class="info-box" id="codeSentMsg" style="background:#e8f5e9;color:#2e7d32;">
+                Код отправлен на <strong id="verifyEmail"></strong>
+            </div>
+            <div class="field">
+                <label>Код из письма</label>
+                <input type="text" id="verifyCode" required pattern="[0-9]{6}" maxlength="6" placeholder="123456" autocomplete="one-time-code" inputmode="numeric">
+            </div>
             <div class="field">
                 <label>Пароль (мин 4 символа)</label>
-                <input type="password" id="regPassword" required autocomplete="new-password" minlength="4">
+                <input type="password" id="verifyPassword" required autocomplete="new-password" minlength="4">
             </div>
-            <div class="info-box">
-                После регистрации вы получите <strong>6 пробных сообщений</strong> с AI-гештальт-терапевтом (DeepSeek V3).
-                Pro-тариф с DeepSeek V4 Pro — скоро.
-            </div>
-            <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+            <button type="submit" class="btn btn-primary" id="verifyBtn">Зарегистрироваться</button>
+            <p style="text-align:center;margin-top:12px;">
+                <a href="#" onclick="backToEmail()" style="color:#4a6fa5;font-size:0.9rem;">← Изменить email</a>
+            </p>
         </form>
 
         <div class="back-link">
@@ -202,13 +220,12 @@
             e.preventDefault();
             hideMessages();
             const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPassword').value;
 
             try {
                 const res = await fetch(`${API_BASE}/api/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email, password: 'placeholder' })
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Ошибка регистрации');
@@ -223,6 +240,82 @@
             }
         }
 
+        async function handleSendCode(e) {
+            e.preventDefault();
+            hideMessages();
+            const email = document.getElementById('regEmail').value.trim();
+            const btn = document.getElementById('sendCodeBtn');
+
+            btn.disabled = true;
+            btn.textContent = 'Отправляем...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/send-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Ошибка отправки кода');
+
+                // Switch to step 2
+                document.getElementById('verifyEmail').textContent = email;
+                document.getElementById('registerForm').classList.remove('active');
+                document.getElementById('verifyForm').classList.add('active');
+                showSuccess('Код отправлен на ' + email);
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Получить код';
+            }
+        }
+
+        async function handleVerify(e) {
+            e.preventDefault();
+            hideMessages();
+            const email = document.getElementById('verifyEmail').textContent;
+            const code = document.getElementById('verifyCode').value.trim();
+            const password = document.getElementById('verifyPassword').value;
+            const btn = document.getElementById('verifyBtn');
+            const trialId = localStorage.getItem('tf_trial_id');
+
+            btn.disabled = true;
+            btn.textContent = 'Проверяем...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code, password, trialId })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Ошибка верификации');
+
+                // Save auth data
+                localStorage.setItem('tf_token', data.token);
+                localStorage.setItem('tf_user', JSON.stringify(data.user));
+
+                // Clean up trial data
+                localStorage.removeItem('tf_trial_id');
+                localStorage.removeItem('tf_trial_left');
+
+                showSuccess('Регистрация успешна! +6 сообщений в подарок 🎉');
+                setTimeout(() => redirectAfterAuth(), 1000);
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Зарегистрироваться';
+            }
+        }
+
+        function backToEmail() {
+            hideMessages();
+            document.getElementById('verifyForm').classList.remove('active');
+            document.getElementById('registerForm').classList.add('active');
+        }
+
         function redirectAfterAuth() {
             // Если пришли с параметром redirect — туда, иначе на чат
             const params = new URLSearchParams(window.location.search);
@@ -235,6 +328,19 @@
                 window.location.href = 'chat.html';
             }
         }
+
+        // Translate nav based on saved language
+        (function() {
+            const saved = localStorage.getItem('tf_lang') || 'ru';
+            const navI18n = {
+                ru: { home: 'Главная', test: 'Тест', chat: 'AI-беседа' },
+                en: { home: 'Home', test: 'Quiz', chat: 'AI Chat' }
+            };
+            const nav = navI18n[saved] || navI18n.ru;
+            document.getElementById('navHome').textContent = nav.home;
+            document.getElementById('navTest').textContent = nav.test;
+            document.getElementById('navChat').textContent = nav.chat;
+        })();
     </script>
 </body>
 </html>
