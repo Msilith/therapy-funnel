@@ -70,7 +70,7 @@
         <div class="topnav-inner">
             <span class="brand"><img src="images/icon-32x32.jpg" alt="">Therapy Void</span>
             <a href="home.html?v=2" class="active" id="navHome">Главная</a>
-            <a href="index.html" id="navTest">Тест</a>
+            <a href="index.html" id="navTest" onclick="passLang(event)">Тест</a>
             <a href="chat.html" id="navChat">AI-беседа</a>
         </div>
     </nav>
@@ -91,7 +91,7 @@
             <h1>Therapy Void</h1>
             <p id="heroText">Пространство для самоисследования. Узнайте, какой подход к самопознанию вам ближе — от классической терапии до духовного наставничества.</p>
             <div class="cta-row">
-                <a href="index.html" class="btn btn-primary" id="ctaTest">🧭 Пройти тест</a>
+                <a href="index.html" class="btn btn-primary" id="ctaTest" onclick="passLang(event)">🧭 Пройти тест</a>
                 <a href="chat.html" class="btn btn-green" id="ctaChat">🌿 AI-беседа</a>
             </div>
         </div>
@@ -268,6 +268,12 @@
             applyLang(l);
         }
 
+        function passLang(e) {
+            e.preventDefault();
+            const lang = localStorage.getItem('tf_lang') || 'ru';
+            window.location.href = 'index.html?lang=' + lang;
+        }
+
         // Init
         const saved = localStorage.getItem('tf_lang') || 'ru';
         applyLang(saved);
@@ -275,3 +281,4 @@
 </body>
 </html>
 <!-- force rebuild Sun Jul  5 02:02:32 RTZ 2026 -->
+<!-- rebuild -->
