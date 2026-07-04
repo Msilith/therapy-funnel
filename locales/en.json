@@ -721,6 +721,8 @@
     "backTitle": "Back",
     "tos": "Terms of Service",
     "privacy": "Privacy Policy",
-    "freeBadge": "Free · Messages left: {left}"
+    "freeBadge": "Free · Messages left: {left}",
+    "tos": "Terms of Service",
+    "privacy": "Privacy Policy"
   }
 }
