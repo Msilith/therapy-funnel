@@ -134,7 +134,7 @@ NODE_ENV=production
 PORT=10000
 JWT_SECRET=tv-dragon-sigil-2026-secure-jwt-key-change-me
 DEEPSEEK_API_KEY=<в Render env vars>
-DATABASE_URL=postgresql://neondb_owner:REMOVED@ep-wispy-fog-ajr3efpi-pooler.c-3.us-east-2.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=<в Render env vars>
 RESEND_API_KEY=re_7CPm7vCX_LpuLM1BsCzRjCUsb7HzJXpVq
 FROM_EMAIL=TherapyVoid <noreply@therapyvoid.com>
 ```
