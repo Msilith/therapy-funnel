@@ -57,3 +57,5 @@ PROJECT_CREDS.md
 RESOURCES.md
 main icon.jpg
 images/main-icon-original.jpg
+.git-rewrite/
+bfg.jar
