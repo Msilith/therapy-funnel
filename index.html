@@ -68,6 +68,10 @@
 
         .selector-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow); }
 
+        @media (max-width: 600px) {
+            .container > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+        }
+
         .cta-section { background: #f8f9fa; border-radius: var(--radius); padding: 24px; margin-top: 24px; text-align: center; }
         .cta-grid { display: flex; flex-direction: column; gap: 12px; }
         .cta-btn { width: 100%; padding: 16px 20px; border: none; border-radius: var(--radius); font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; min-height: 52px; touch-action: manipulation; color: white; }
@@ -176,29 +180,21 @@
                 <h2 style="color:#166088;text-align:center;margin-bottom:8px;" data-i18n="selector.title">Выберите формат</h2>
                 <p style="color:#666;text-align:center;margin-bottom:24px;font-size:0.95rem;" data-i18n="selector.subtitle">Чем подробнее вы ответите, тем точнее будет результат.</p>
 
-                <div style="display:flex;flex-direction:column;gap:16px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                     <!-- Quick Option -->
-                    <div class="selector-card" onclick="startTest('quick')" style="background:#f8f9fa;border:2px solid #e9ecef;border-radius:12px;padding:24px;cursor:pointer;transition:all 0.3s;">
-                        <div style="display:flex;align-items:center;gap:16px;">
-                            <div style="font-size:2.5rem;">⚡</div>
-                            <div style="flex:1;">
-                                <h3 style="color:#343a40;margin-bottom:4px;" data-i18n="selector.quickTitle">Быстрый скрининг</h3>
-                                <p style="color:#666;font-size:0.9rem;margin:0;" data-i18n="selector.quickDesc">5 вопросов · ~2 минуты</p>
-                            </div>
-                            <span style="background:#e3f2fd;color:#1565c0;padding:6px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;" data-i18n="selector.quickBadge">⚡ Для тех, кто хочет попробовать</span>
-                        </div>
+                    <div class="selector-card" onclick="startTest('quick')" style="background:#f8f9fa;border:2px solid #e9ecef;border-radius:12px;padding:24px;cursor:pointer;transition:all 0.3s;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:200px;justify-content:center;">
+                        <div style="font-size:3rem;margin-bottom:12px;">⚡</div>
+                        <h3 style="color:#343a40;margin-bottom:8px;" data-i18n="selector.quickTitle">Быстрый скрининг</h3>
+                        <p style="color:#666;font-size:0.9rem;margin:0 0 12px;" data-i18n="selector.quickDesc">5 вопросов · ~2 минуты</p>
+                        <span style="background:#e3f2fd;color:#1565c0;padding:6px 16px;border-radius:20px;font-size:0.8rem;font-weight:600;" data-i18n="selector.quickBadge">Для тех, кто хочет попробовать</span>
                     </div>
 
                     <!-- Full Option -->
-                    <div class="selector-card" onclick="startTest('full')" style="background:#f8f9fa;border:2px solid #4a6fa5;border-radius:12px;padding:24px;cursor:pointer;transition:all 0.3s;">
-                        <div style="display:flex;align-items:center;gap:16px;">
-                            <div style="font-size:2.5rem;">🎯</div>
-                            <div style="flex:1;">
-                                <h3 style="color:#343a40;margin-bottom:4px;" data-i18n="selector.fullTitle">Полный скрининг</h3>
-                                <p style="color:#666;font-size:0.9rem;margin:0;" data-i18n="selector.fullDesc">15 вопросов · ~5 минут</p>
-                            </div>
-                            <span style="background:#e8f5e9;color:#2e7d32;padding:6px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;" data-i18n="selector.fullBadge">🎯 Максимальная точность</span>
-                        </div>
+                    <div class="selector-card" onclick="startTest('full')" style="background:#f8f9fa;border:2px solid #4a6fa5;border-radius:12px;padding:24px;cursor:pointer;transition:all 0.3s;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:200px;justify-content:center;">
+                        <div style="font-size:3rem;margin-bottom:12px;">🎯</div>
+                        <h3 style="color:#343a40;margin-bottom:8px;" data-i18n="selector.fullTitle">Полный скрининг</h3>
+                        <p style="color:#666;font-size:0.9rem;margin:0 0 12px;" data-i18n="selector.fullDesc">15 вопросов · ~5 минут</p>
+                        <span style="background:#e8f5e9;color:#2e7d32;padding:6px 16px;border-radius:20px;font-size:0.8rem;font-weight:600;" data-i18n="selector.fullBadge">Максимальная точность</span>
                     </div>
                 </div>
             </div>
