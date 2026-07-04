@@ -15,12 +15,12 @@ const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://localhost:5432/th
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-change-in-production';
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
 const DEEPSEEK_BASE = 'https://api.deepseek.com/v1';
-const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_Lfcf4fJF_FbGaUgjRsU4neJ6LMmj1zDoH';
+const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_7CPm7vCX_LpuLM1BsCzRjCUsb7HzJXpVq';
 
 const resend = new Resend(RESEND_API_KEY);
-const FROM_EMAIL = 'TherapyVoid <noreply@therapyvoid.com>';
-// Fallback для тестирования (Resend даёт onboarding@resend.dev для верифицированных)
-const FROM_EMAIL_DEV = 'TherapyVoid <onboarding@resend.dev>';
+const FROM_EMAIL = 'TherapyVoid <onboarding@resend.dev>';
+// Когда домен будет верифицирован:
+// const FROM_EMAIL = 'TherapyVoid <noreply@therapyvoid.com>';
 
 // ─── PostgreSQL Pool (Neon) ───
 const pool = new Pool({
@@ -353,28 +353,8 @@ app.post('/api/auth/send-code', rateLimiter(3, 300000), async (req, res) => {
         `
       });
     } catch (emailErr) {
-      // If custom domain fails, try with dev address
-      console.error('Email send error (primary):', emailErr.message);
-      try {
-        await resend.emails.send({
-          from: FROM_EMAIL_DEV,
-          to: email,
-          subject: 'Код подтверждения — TherapyVoid',
-          html: `
-            <div style="font-family:sans-serif;max-width:400px;margin:0 auto;padding:40px 20px;text-align:center;">
-              <h2 style="color:#166088;">TherapyVoid</h2>
-              <p style="color:#666;font-size:16px;">Ваш код подтверждения:</p>
-              <div style="background:#f5f7fa;border-radius:12px;padding:20px;margin:20px 0;">
-                <span style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#343a40;">${code}</span>
-              </div>
-              <p style="color:#999;font-size:14px;">Код действителен 10 минут.</p>
-            </div>
-          `
-        });
-      } catch (emailErr2) {
-        console.error('Email send error (fallback):', emailErr2.message);
-        return res.status(500).json({ error: 'Не удалось отправить код. Попробуйте позже.' });
-      }
+      console.error('Email send error:', emailErr.message);
+      return res.status(500).json({ error: 'Не удалось отправить код. Попробуйте позже.' });
     }
 
     res.json({ success: true, message: 'Код отправлен на ' + email });
