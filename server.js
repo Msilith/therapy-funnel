@@ -18,9 +18,7 @@ const DEEPSEEK_BASE = 'https://api.deepseek.com/v1';
 const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_7CPm7vCX_LpuLM1BsCzRjCUsb7HzJXpVq';
 
 const resend = new Resend(RESEND_API_KEY);
-const FROM_EMAIL = 'TherapyVoid <onboarding@resend.dev>';
-// Когда домен будет верифицирован:
-// const FROM_EMAIL = 'TherapyVoid <noreply@therapyvoid.com>';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'TherapyVoid <noreply@therapyvoid.com>';
 
 // ─── PostgreSQL Pool (Neon) ───
 const pool = new Pool({
