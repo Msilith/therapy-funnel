@@ -169,8 +169,8 @@
     </nav>
 
     <div class="container">
-        <!-- Selector Page -->
-        <div id="selectorPage" style="display:block;max-width:700px;margin:0 auto;">
+        <!-- Selector Page (hidden until locale loads) -->
+        <div id="selectorPage" style="display:none;max-width:700px;margin:0 auto;">
             <header>
                 <h1><img src="images/icon-72x72.jpg" class="logo" alt="TherapyVoid"> <span data-i18n="heading">Создай своего героя</span></h1>
                 <p class="subtitle" data-i18n="subtitle">Ответь на вопросы и познай тайны своей души.</p>
@@ -652,7 +652,8 @@
             lang = detectLang();
             await loadLocale(lang);
             ALL_SCHOOLS.forEach(s => scores[s] = 0);
-            initTestUI();
+            // Show selector page after locale is loaded
+            document.getElementById('selectorPage').style.display = 'block';
         };
     </script>
 </body>
