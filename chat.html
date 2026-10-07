@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://therapy-funnel.onrender.com https://api.deepseek.com; img-src 'self' data:;">
-    <title>AI-терапевт — Therapy Funnel</title>
+    <title>AI-КПТ-практик — Therapy Funnel</title>
     <link rel="icon" href="images/icon-16x16.jpg" type="image/jpeg" sizes="16x16">
     <link rel="icon" href="images/icon-32x32.jpg" type="image/jpeg" sizes="32x32">
     <link rel="apple-touch-icon" href="images/icon-64x64.jpg">
@@ -210,11 +210,11 @@
                 chatLoc = d.chat;
                 // Set initial header based on saved mode
                 const lastResult = localStorage.getItem('tf_lastResult');
-                let initMode = 'gestalt';
+                let initMode = 'cbt';
                 if (lastResult) {
                     try {
                         const r = JSON.parse(lastResult);
-                        initMode = {C:'cbt',P:'psychoanalytic',G:'gestalt',E:'existential',X:'christian',I:'islamic'}[r.schoolCode] || 'gestalt';
+                        initMode = {C:'cbt',P:'psychoanalytic',G:'gestalt',E:'existential',X:'christian',I:'islamic'}[r.schoolCode] || 'cbt';
                     } catch(e) {}
                 }
                 chatMode = initMode;
@@ -236,7 +236,7 @@
         let trialLeft = null;
         let trialId = null;
         let isTrialMode = false;
-        let chatMode = 'gestalt';
+        let chatMode = 'cbt';
 
         // Map school code from test to chat mode
         const SCHOOL_TO_MODE = {
@@ -244,7 +244,7 @@
             'P': 'psychoanalytic',
             'G': 'gestalt',
             'E': 'existential',
-            'S': 'gestalt',
+            'S': 'cbt',
             'X': 'christian',
             'I': 'islamic'
         };
