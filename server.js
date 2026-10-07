@@ -110,6 +110,28 @@ async function initDB() {
         used BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS sessions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title TEXT DEFAULT 'Новая сессия',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        session_id INTEGER NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        role TEXT NOT NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS client_profiles (
+        user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        data JSONB DEFAULT '{}',
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
     `);
     console.log('✓ PostgreSQL tables ready');
   } finally {
@@ -215,6 +237,29 @@ YES — если сообщение о чувствах, переживания�
 NO — если сообщение просит написать код, решить задачу, перевести текст, дать бизнес-совет, техническую консультацию, математику, программирование, или любую не-психологическую задачу.
 
 Сообщение:`;
+
+// ─── Safety-классификатор (кризис/агрессия) ───
+const SAFETY_PROMPT = `Ты — safety-классификатор. Оцени ОДНО сообщение пользователя.
+Ответь ровно одним словом:
+CRISIS — суицидальные мысли/намерения/планы, самоповреждение, психоз, «нет смысла жить», «лучше бы я не проснулся».
+AGGRESSION — конкретные угрозы насилия другим или план навредить другим.
+OK — во всех остальных случаях (включая грусть, усталость, злость без угроз).
+Сообщение:`;
+
+const CRISIS_RESPONSE = `Стоп. То, что ты описываешь, — серьёзно, и с этим нужно быть не в одиночку.
+
+Если речь о риске для жизни — сейчас, немедленно:
+• Единый экстренный номер: 112
+• Кризисная линия 8 (800) 2000-122 (круглосуточно, бесплатно)
+
+Пожалуйста, свяжись с живым человеком прямо сейчас. Я — программа и не могу заменить человека в этом моменте. Когда будешь в безопасности — я здесь.`;
+
+const AGGRESSION_RESPONSE = `Я слышу, что в тебе сейчас много гнева. Если чувствуешь, что можешь причинить вред себе или другим, — нужен живой человек рядом.
+
+• Единый экстренный номер: 112
+• Кризисная линия 8 (800) 2000-122
+
+Не оставайся с этим один. Позже сможем разобрать, что стоит за гневом — если захочешь.`;
 
 // ─── JWT Middleware ───
 function authMiddleware(req, res, next) {
@@ -759,6 +804,163 @@ app.post('/api/chat', authMiddleware, rateLimiter(30, 60000), async (req, res) =
     });
   } catch (err) {
     console.error('Chat error:', err);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+});
+
+// ─── Sessions (authenticated CBT sessions with persisted history) ───
+app.post('/api/sessions', authMiddleware, async (req, res) => {
+  try {
+    const title = (req.body && req.body.title) ? String(req.body.title).slice(0, 120) : 'Новая сессия';
+    const r = await pool.query(
+      'INSERT INTO sessions (user_id, title) VALUES ($1, $2) RETURNING id, title, created_at, updated_at',
+      [req.user.id, title]
+    );
+    res.status(201).json({ session: r.rows[0] });
+  } catch (err) {
+    console.error('Session create error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.get('/api/sessions', authMiddleware, async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT s.id, s.title, s.created_at, s.updated_at,
+              (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
+       FROM sessions s WHERE s.user_id = $1 ORDER BY s.updated_at DESC`,
+      [req.user.id]
+    );
+    res.json({ sessions: r.rows });
+  } catch (err) {
+    console.error('Session list error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.get('/api/sessions/:id', authMiddleware, async (req, res) => {
+  try {
+    const s = await pool.query(
+      'SELECT id, title, created_at, updated_at FROM sessions WHERE id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]
+    );
+    if (!s.rows.length) return res.status(404).json({ error: 'Сессия не найдена' });
+    const m = await pool.query(
+      'SELECT role, content, created_at FROM messages WHERE session_id = $1 ORDER BY id ASC',
+      [req.params.id]
+    );
+    res.json({ session: s.rows[0], messages: m.rows });
+  } catch (err) {
+    console.error('Session get error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.delete('/api/sessions/:id', authMiddleware, async (req, res) => {
+  try {
+    const own = await pool.query('SELECT id FROM sessions WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+    if (!own.rows.length) return res.status(404).json({ error: 'Сессия не найдена' });
+    await pool.query('DELETE FROM messages WHERE session_id = $1', [req.params.id]);
+    await pool.query('DELETE FROM sessions WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Session delete error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.post('/api/sessions/:id/messages', authMiddleware, rateLimiter(30, 60000), async (req, res) => {
+  const { message } = req.body || {};
+  if (!message) return res.status(400).json({ error: 'Сообщение обязательно' });
+
+  try {
+    const s = await pool.query('SELECT id FROM sessions WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+    if (!s.rows.length) return res.status(404).json({ error: 'Сессия не найдена' });
+
+    // Guard: только психологический запрос
+    try {
+      const guardRes = await fetch(`${DEEPSEEK_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` },
+        body: JSON.stringify({
+          model: 'deepseek-v4-flash',
+          messages: [{ role: 'system', content: GUARD_PROMPT }, { role: 'user', content: message }],
+          max_tokens: 3,
+          temperature: 0
+        })
+      });
+      if (guardRes.ok) {
+        const gd = await guardRes.json();
+        const verdict = (gd.choices?.[0]?.message?.content || '').trim().toUpperCase();
+        if (verdict === 'NO') {
+          return res.json({
+            reply: 'Я здесь только для работы с тем, что тебя беспокоит. Если есть запрос про чувства, мысли или отношения — я рядом.',
+            rejected: true
+          });
+        }
+      }
+    } catch (_) {}
+
+    // Safety: кризис/агрессия
+    let sv = 'OK';
+    try {
+      const sr = await fetch(`${DEEPSEEK_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` },
+        body: JSON.stringify({
+          model: 'deepseek-v4-flash',
+          messages: [{ role: 'system', content: SAFETY_PROMPT }, { role: 'user', content: message }],
+          max_tokens: 3,
+          temperature: 0
+        })
+      });
+      if (sr.ok) {
+        const sd = await sr.json();
+        sv = (sd.choices?.[0]?.message?.content || '').trim().toUpperCase().split(/\s|\.|,/)[0];
+      }
+    } catch (_) {}
+
+    if (sv === 'CRISIS' || sv === 'AGGRESSION') {
+      const safeReply = sv === 'CRISIS' ? CRISIS_RESPONSE : AGGRESSION_RESPONSE;
+      await pool.query('INSERT INTO messages (session_id, role, content) VALUES ($1,$2,$3),($1,$4,$5)',
+        [req.params.id, 'user', message, 'assistant', safeReply]);
+      await pool.query('UPDATE sessions SET updated_at = NOW() WHERE id = $1', [req.params.id]);
+      return res.json({ reply: safeReply, safety: sv });
+    }
+
+    // История из БД
+    const histRes = await pool.query(
+      'SELECT role, content FROM messages WHERE session_id = $1 ORDER BY id DESC LIMIT 30',
+      [req.params.id]
+    );
+    const history = histRes.rows.reverse().map(r => ({ role: r.role, content: r.content }));
+
+    const messages = [{ role: 'system', content: CBT_PROMPT }, ...history, { role: 'user', content: message }];
+    const response = await fetch(`${DEEPSEEK_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` },
+      body: JSON.stringify({ model: 'deepseek-v4-flash', messages, max_tokens: 1024, temperature: 0.7 })
+    });
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('Session engine error:', response.status, err);
+      return res.status(502).json({ error: 'Ошибка AI-сервера, попробуйте позже' });
+    }
+    const data = await response.json();
+    const reply = data.choices?.[0]?.message?.content || '...';
+
+    await pool.query('INSERT INTO messages (session_id, role, content) VALUES ($1,$2,$3),($1,$4,$5)',
+      [req.params.id, 'user', message, 'assistant', reply]);
+
+    const cnt = await pool.query('SELECT COUNT(*) AS c FROM messages WHERE session_id = $1', [req.params.id]);
+    if (parseInt(cnt.rows[0].c, 10) === 2) {
+      await pool.query('UPDATE sessions SET title = $2 WHERE id = $1', [req.params.id, message.slice(0, 60)]);
+    }
+    await pool.query('UPDATE sessions SET updated_at = NOW() WHERE id = $1', [req.params.id]);
+
+    res.json({ reply, model: 'deepseek-v4-flash' });
+  } catch (err) {
+    console.error('Session message error:', err);
     res.status(500).json({ error: 'Внутренняя ошибка сервера' });
   }
 });

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мои сессии — Выход из комнаты</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0d0f14;--panel:#151922;--panel2:#1c2230;--text:#e8eaf0;--muted:#8b93a7;--accent:#5b8def;--line:#242b3a}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:820px;margin:0 auto;padding:0 20px}
+  nav{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(13,15,20,.85);backdrop-filter:blur(10px);z-index:5}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .logo{font-weight:700}.logo span{color:var(--accent)}
+  .navlinks{display:flex;gap:18px;align-items:center;font-size:.9rem;color:var(--muted)}
+  .navlinks a:hover{color:var(--text)}
+  header{padding:40px 0 8px}
+  h1{font-size:1.9rem;font-weight:800;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin-top:8px}
+  .btn{display:inline-block;padding:12px 20px;border-radius:10px;font-weight:600;font-size:.95rem;cursor:pointer;border:1px solid transparent;transition:.2s}
+  .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#7aa2ff}
+  .btn-ghost{border-color:var(--line);color:var(--text)}.btn-ghost:hover{border-color:var(--accent)}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin:24px 0 16px}
+  .list{display:flex;flex-direction:column;gap:12px;padding-bottom:60px}
+  .item{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;transition:.2s}
+  .item:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .item .t{font-weight:600;margin-bottom:4px}
+  .item .meta{color:var(--muted);font-size:.85rem}
+  .item .del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:6px 10px;border-radius:8px}
+  .item .del:hover{color:#e07e7e;background:var(--panel2)}
+  .empty{color:var(--muted);text-align:center;padding:60px 20px;border:1px dashed var(--line);border-radius:14px}
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <div class="logo"><a href="home.html">Выход из <span>комнаты</span></a></div>
+    <div class="navlinks">
+      <a href="home.html">Главная</a>
+      <a href="#" id="logout">Выйти</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <header>
+    <h1>Мои сессии</h1>
+    <p class="sub">Возвращайся к своим разговорам или начни новый.</p>
+  </header>
+
+  <div class="toolbar">
+    <span class="meta" id="count"></span>
+    <button class="btn btn-primary" id="newSession">+ Новая сессия</button>
+  </div>
+
+  <div class="list" id="list"></div>
+</div>
+
+<script>
+const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:3000' : 'https://therapy-funnel.onrender.com';
+const token = localStorage.getItem('tf_token');
+if (!token) location.replace('auth.html');
+
+function fmt(iso){ try { return new Date(iso).toLocaleString('ru-RU',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}); } catch { return ''; } }
+
+async function load(){
+  const list = document.getElementById('list');
+  try {
+    const r = await fetch(`${API_BASE}/api/sessions`, { headers:{ Authorization:`Bearer ${token}` } });
+    if (r.status === 401) { localStorage.removeItem('tf_token'); localStorage.removeItem('tf_user'); location.replace('auth.html'); return; }
+    const d = await r.json();
+    const sessions = d.sessions || [];
+    document.getElementById('count').textContent = sessions.length ? `${sessions.length} сессий` : '';
+    if (!sessions.length) {
+      list.innerHTML = '<div class="empty">Пока пусто. Начни первую сессию.</div>';
+      return;
+    }
+    list.innerHTML = sessions.map(s => `
+      <div class="item" data-id="${s.id}">
+        <div>
+          <div class="t">${escapeHtml(s.title || 'Сессия')}</div>
+          <div class="meta">${fmt(s.updated_at)} · сообщений: ${s.message_count}</div>
+        </div>
+        <button class="del" data-del="${s.id}" title="Удалить">✕</button>
+      </div>`).join('');
+
+    list.querySelectorAll('.item').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (e.target.dataset.del) return;
+        location.href = 'session.html?id=' + el.dataset.id;
+      });
+    });
+    list.querySelectorAll('.del').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.del;
+        if (!confirm('Удалить эту сессию и всю её переписку?')) return;
+        await fetch(`${API_BASE}/api/sessions/${id}`, { method:'DELETE', headers:{ Authorization:`Bearer ${token}` } });
+        load();
+      });
+    });
+  } catch (err) {
+    list.innerHTML = '<div class="empty">Не удалось загрузить. Обнови страницу.</div>';
+  }
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+document.getElementById('newSession').addEventListener('click', async () => {
+  const r = await fetch(`${API_BASE}/api/sessions`, { method:'POST', headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' }, body:'{}' });
+  const d = await r.json();
+  if (d.session) location.href = 'session.html?id=' + d.session.id;
+});
+
+document.getElementById('logout').addEventListener('click', (e) => {
+  e.preventDefault();
+  localStorage.removeItem('tf_token'); localStorage.removeItem('tf_user');
+  location.href = 'home.html';
+});
+
+load();
+</script>
+</body>
+</html>

@@ -316,16 +316,8 @@
         }
 
         function redirectAfterAuth() {
-            // Если пришли с параметром redirect — туда, иначе на чат
-            const params = new URLSearchParams(window.location.search);
-            const redirect = params.get('redirect');
-            if (redirect === 'chat') {
-                window.location.href = 'chat.html';
-            } else if (redirect === 'index') {
-                window.location.href = 'index.html';
-            } else {
-                window.location.href = 'chat.html';
-            }
+            // После входа/регистрации — в кабинет с сессиями
+            window.location.href = 'cabinet.html';
         }
 
         // Translate nav based on saved language
