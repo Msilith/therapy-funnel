@@ -1,0 +1,11 @@
+title = "TherapyVoid gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Placeholders and examples — not secrets"
+paths = [
+  '''\.env\.example$''',
+  '''README\.md$''',
+]

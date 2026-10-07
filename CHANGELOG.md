@@ -55,9 +55,9 @@
 
 ## v2.4.1 (22.05.2026) — Security Cleanup
 
-- Старый ключ DeepSeek `sk-ba29...` засвечен в git-истории
+- Старый ключ DeepSeek был засвечен в git-истории
 - Убран из `server.js` → всё в `process.env.*`
-- Новый ключ в Render env vars, локальном `.env`, `models.json`
+- Новый ключ в Render env vars и локальном `.env.local`
 - Старый ключ отозван на platform.deepseek.com
 
 ---
@@ -142,9 +142,9 @@
 ```
 NODE_ENV=production
 PORT=10000
-JWT_SECRET=***REMOVED***
-DEEPSEEK_API_KEY=<в Render env vars>
-DATABASE_URL=postgresql://neondb_owner:***REMOVED***@ep-wispy-fog-ajr3efpi-pooler.c-3.us-east-2.aws.neon.tech/neondb?sslmode=require
-RESEND_API_KEY=***REMOVED***
+JWT_SECRET=<set in Render env vars>
+DEEPSEEK_API_KEY=<set in Render env vars>
+DATABASE_URL=<set in Render env vars>
+RESEND_API_KEY=<set in Render env vars>
 FROM_EMAIL=TherapyVoid <noreply@therapyvoid.com>
 ```

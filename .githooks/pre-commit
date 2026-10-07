@@ -1,0 +1,16 @@
+#!/bin/sh
+# Блокирует коммит, если в staged-изменениях похоже на секрет.
+# Установка: git config core.hooksPath .githooks
+
+patterns='npg_[A-Za-z0-9]{12,}|re_[A-Za-z0-9]{16,}|sk-[A-Za-z0-9]{20,}|postgres(ql)?://[^ ]*:[^ @]+@|tv-dragon-sigil'
+
+staged=$(git diff --cached -U0 | grep '^+' || true)
+if echo "$staged" | grep -Eq "$patterns"; then
+  echo ""
+  echo "✋ Похоже на секрет в staged-изменениях. Коммит заблокирован."
+  echo "$staged" | grep -En "$patterns" | head -5
+  echo ""
+  echo "Если это ложное срабатывание: git commit --no-verify"
+  exit 1
+fi
+exit 0
