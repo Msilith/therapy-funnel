@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://therapy-funnel.onrender.com https://api.deepseek.com; img-src 'self' data:;">
-    <title>AI-КПТ-практик — Therapy Funnel</title>
+    <title>Сессия — Выход из комнаты</title>
     <link rel="icon" href="images/icon-16x16.jpg" type="image/jpeg" sizes="16x16">
     <link rel="icon" href="images/icon-32x32.jpg" type="image/jpeg" sizes="32x32">
     <link rel="apple-touch-icon" href="images/icon-64x64.jpg">
@@ -157,10 +157,9 @@
     <!-- Top Navigation -->
     <nav class="topnav">
         <div class="topnav-inner">
-            <span class="brand">Therapy Void</span>
-            <a href="home.html?v=2" id="navHome">Главная</a>
-            <a href="index.html" id="navTest">Тест</a>
-            <a href="chat.html" class="active" id="navChat">AI-беседа</a>
+            <span class="brand">Выход из комнаты</span>
+            <a href="home.html" id="navHome">Главная</a>
+            <a href="chat.html" class="active" id="navChat">Сессия</a>
         </div>
     </nav>
 
@@ -223,11 +222,11 @@
                 document.getElementById('headerName').textContent = ct(hKey) || ct('headerName');
                 document.getElementById('modelStatus').textContent = ct('modelDefault');
                 document.getElementById('backBtn').title = ct('backTitle');
-                document.getElementById('navHome').textContent = ct('navHome');
-                document.getElementById('navTest').textContent = ct('navTest');
-                document.getElementById('navChat').textContent = ct('navChat');
-                document.getElementById('footerTos').textContent = ct('tos');
-                document.getElementById('footerPrivacy').textContent = ct('privacy');
+                const nh = document.getElementById('navHome'); if (nh) nh.textContent = ct('navHome');
+                const nt = document.getElementById('navTest'); if (nt) nt.textContent = ct('navTest');
+                const nc = document.getElementById('navChat'); if (nc) nc.textContent = ct('navChat');
+                const ft = document.getElementById('footerTos'); if (ft) ft.textContent = ct('tos');
+                const fp = document.getElementById('footerPrivacy'); if (fp) fp.textContent = ct('privacy');
             } catch(e) {}
         }
 
