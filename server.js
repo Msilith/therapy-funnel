@@ -13,6 +13,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://localhost:5432/therapyfunnel';
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-change-in-production';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
 const DEEPSEEK_BASE = 'https://api.deepseek.com/v1';
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
@@ -132,6 +133,15 @@ async function initDB() {
         data JSONB DEFAULT '{}',
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS blocked BOOLEAN DEFAULT FALSE;
     `);
     console.log('✓ PostgreSQL tables ready');
   } finally {
@@ -877,6 +887,11 @@ app.post('/api/sessions/:id/messages', authMiddleware, rateLimiter(30, 60000), a
     const s = await pool.query('SELECT id FROM sessions WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
     if (!s.rows.length) return res.status(404).json({ error: 'Сессия не найдена' });
 
+    const urow = await pool.query('SELECT blocked FROM users WHERE id = $1', [req.user.id]);
+    if (urow.rows[0] && urow.rows[0].blocked) {
+      return res.status(403).json({ error: 'Доступ ограничен. Свяжитесь с поддержкой.' });
+    }
+
     // Guard: только психологический запрос
     try {
       const guardRes = await fetch(`${DEEPSEEK_BASE}/chat/completions`, {
@@ -935,7 +950,13 @@ app.post('/api/sessions/:id/messages', authMiddleware, rateLimiter(30, 60000), a
     );
     const history = histRes.rows.reverse().map(r => ({ role: r.role, content: r.content }));
 
-    const messages = [{ role: 'system', content: CBT_PROMPT }, ...history, { role: 'user', content: message }];
+    let sysPrompt = CBT_PROMPT;
+    try {
+      const sp = await pool.query("SELECT value FROM settings WHERE key = 'cbt_prompt'");
+      if (sp.rows.length && sp.rows[0].value) sysPrompt = sp.rows[0].value;
+    } catch (_) {}
+
+    const messages = [{ role: 'system', content: sysPrompt }, ...history, { role: 'user', content: message }];
     const response = await fetch(`${DEEPSEEK_BASE}/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` },
@@ -963,6 +984,95 @@ app.post('/api/sessions/:id/messages', authMiddleware, rateLimiter(30, 60000), a
     console.error('Session message error:', err);
     res.status(500).json({ error: 'Внутренняя ошибка сервера' });
   }
+});
+
+// ─── Admin ───
+function adminMiddleware(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) return res.status(401).json({ error: 'Требуется авторизация' });
+  try {
+    const u = jwt.verify(header.slice(7), JWT_SECRET);
+    if (u.role !== 'admin') return res.status(403).json({ error: 'Доступ запрещён' });
+    req.admin = u;
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Недействительный токен' });
+  }
+}
+
+app.post('/api/admin/login', rateLimiter(5, 300000), (req, res) => {
+  if (!ADMIN_PASSWORD) return res.status(501).json({ error: 'Админка не настроена: задайте ADMIN_PASSWORD в env' });
+  const { password } = req.body || {};
+  if (!password || password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Неверный пароль' });
+  const token = jwt.sign({ role: 'admin', sub: 'admin' }, JWT_SECRET, { expiresIn: '12h' });
+  res.json({ token });
+});
+
+app.get('/api/admin/users', adminMiddleware, async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT u.id, u.email, u.tier, u.role, u.blocked, u.created_at,
+              (SELECT COUNT(*) FROM sessions s WHERE s.user_id = u.id) AS sessions,
+              (SELECT COUNT(*) FROM messages m JOIN sessions s2 ON s2.id = m.session_id WHERE s2.user_id = u.id) AS messages
+       FROM users u ORDER BY u.id DESC LIMIT 500`
+    );
+    res.json({ users: r.rows });
+  } catch (err) { console.error('admin users:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
+});
+
+app.post('/api/admin/users/:id/block', adminMiddleware, async (req, res) => {
+  try {
+    const blocked = !!(req.body && req.body.blocked);
+    await pool.query('UPDATE users SET blocked = $2 WHERE id = $1', [req.params.id, blocked]);
+    res.json({ ok: true, blocked });
+  } catch (err) { console.error('admin block:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
+});
+
+app.get('/api/admin/sessions', adminMiddleware, async (req, res) => {
+  try {
+    const uid = req.query.user_id;
+    const r = uid
+      ? await pool.query('SELECT id, user_id, title, created_at, updated_at FROM sessions WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 200', [uid])
+      : await pool.query('SELECT id, user_id, title, created_at, updated_at FROM sessions ORDER BY updated_at DESC LIMIT 200');
+    res.json({ sessions: r.rows });
+  } catch (err) { console.error('admin sessions:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
+});
+
+app.get('/api/admin/sessions/:id', adminMiddleware, async (req, res) => {
+  try {
+    const m = await pool.query('SELECT role, content, created_at FROM messages WHERE session_id = $1 ORDER BY id ASC', [req.params.id]);
+    res.json({ messages: m.rows });
+  } catch (err) { console.error('admin session get:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
+});
+
+app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
+  try {
+    const users = (await pool.query('SELECT COUNT(*) AS c FROM users')).rows[0].c;
+    const sessions = (await pool.query('SELECT COUNT(*) AS c FROM sessions')).rows[0].c;
+    const messages = (await pool.query('SELECT COUNT(*) AS c FROM messages')).rows[0].c;
+    const blocked = (await pool.query('SELECT COUNT(*) AS c FROM users WHERE blocked = TRUE')).rows[0].c;
+    const last7 = (await pool.query("SELECT COUNT(*) AS c FROM users WHERE created_at > NOW() - INTERVAL '7 days'")).rows[0].c;
+    res.json({ users, sessions, messages, blocked, last7 });
+  } catch (err) { console.error('admin stats:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
+});
+
+app.get('/api/admin/settings', adminMiddleware, async (req, res) => {
+  try {
+    const r = await pool.query('SELECT key, value, updated_at FROM settings');
+    res.json({ settings: r.rows });
+  } catch (err) { console.error('admin settings:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
+});
+
+app.put('/api/admin/settings/:key', adminMiddleware, async (req, res) => {
+  try {
+    const value = (req.body && req.body.value != null) ? String(req.body.value) : '';
+    await pool.query(
+      `INSERT INTO settings (key, value, updated_at) VALUES ($1, $2, NOW())
+       ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()`,
+      [req.params.key, value]
+    );
+    res.json({ ok: true });
+  } catch (err) { console.error('admin setting put:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
 });
 
 // ─── Results Routes ───
@@ -1020,6 +1130,9 @@ app.get('/api/health', async (req, res) => {
 // ─── Page Routes ───
 app.get('/auth', (req, res) => res.sendFile(path.join(__dirname, 'auth.html')));
 app.get('/chat', (req, res) => res.sendFile(path.join(__dirname, 'chat.html')));
+app.get('/cabinet', (req, res) => res.sendFile(path.join(__dirname, 'cabinet.html')));
+app.get('/session', (req, res) => res.sendFile(path.join(__dirname, 'session.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 app.get('/tos', (req, res) => res.sendFile(path.join(__dirname, 'tos.html')));
 app.get('/privacy', (req, res) => res.sendFile(path.join(__dirname, 'privacy.html')));
 

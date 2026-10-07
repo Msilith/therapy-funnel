@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Админка — Выход из комнаты</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0d0f14;--panel:#151922;--panel2:#1c2230;--text:#e8eaf0;--muted:#8b93a7;--accent:#5b8def;--line:#242b3a;--danger:#d06868}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.5;font-size:14px}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+  nav{border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
+  .logo{font-weight:700}.logo span{color:var(--accent)}
+  .login{max-width:360px;margin:100px auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px}
+  .login h1{font-size:1.4rem;margin-bottom:8px}
+  .login p{color:var(--muted);margin-bottom:20px}
+  input,textarea{width:100%;padding:11px 13px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--text);font-family:inherit;font-size:14px;outline:none}
+  input:focus,textarea:focus{border-color:var(--accent)}
+  .btn{padding:11px 18px;border-radius:9px;font-weight:600;cursor:pointer;border:1px solid transparent;background:var(--accent);color:#fff;font-size:14px}
+  .btn:hover{background:#7aa2ff}
+  .btn-ghost{background:none;border-color:var(--line);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent)}
+  .tabs{display:flex;gap:8px;margin:20px 0;flex-wrap:wrap}
+  .tab{padding:8px 16px;border-radius:8px;border:1px solid var(--line);cursor:pointer;color:var(--muted)}
+  .tab.active{background:var(--panel2);color:var(--text);border-color:var(--accent)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:8px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .stat .n{font-size:1.8rem;font-weight:800;color:var(--accent)}
+  .stat .l{color:var(--muted);font-size:.85rem}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);font-size:.9rem}
+  th{color:var(--muted);font-weight:600}
+  tr:last-child td{border-bottom:none}
+  .tag{padding:2px 8px;border-radius:20px;font-size:.75rem;background:var(--panel2);color:var(--muted)}
+  .tag.blocked{background:#3a1f1f;color:#e08a8a}
+  .mini{padding:6px 12px;font-size:.82rem}
+  .danger{border-color:var(--danger);color:var(--danger)}
+  .danger:hover{background:#2a1a1a}
+  .section{margin-bottom:40px}
+  .muted{color:var(--muted)}
+  .msgs{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;max-height:520px;overflow-y:auto}
+  .msg{margin-bottom:12px;padding-left:12px;border-left:3px solid var(--line)}
+  .msg.user{border-color:var(--accent)}
+  .msg.assistant{border-color:#4a5a4a}
+  .msg .r{color:var(--muted);font-size:.75rem;text-transform:uppercase}
+  .hidden{display:none!important}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo"><a href="home.html">Выход из <span>комнаты</span></a> <span class="muted">· админка</span></div>
+    <a href="#" id="logout" class="muted hidden">выйти</a>
+  </div>
+</nav>
+
+<div id="login" class="login">
+  <h1>Админка</h1>
+  <p>Введите пароль администратора.</p>
+  <input type="password" id="pw" placeholder="Пароль" style="margin-bottom:12px">
+  <button class="btn" id="loginBtn" style="width:100%">Войти</button>
+  <p id="loginErr" class="muted" style="color:var(--danger);margin-top:12px"></p>
+</div>
+
+<div id="app" class="wrap hidden" style="padding-top:24px">
+  <div class="tabs">
+    <div class="tab active" data-tab="stats">Статистика</div>
+    <div class="tab" data-tab="users">Пользователи</div>
+    <div class="tab" data-tab="sessions">Сессии</div>
+    <div class="tab" data-tab="settings">Протокол</div>
+  </div>
+
+  <div id="tab-stats" class="section"></div>
+  <div id="tab-users" class="section hidden"></div>
+  <div id="tab-sessions" class="section hidden"></div>
+  <div id="tab-settings" class="section hidden"></div>
+</div>
+
+<script>
+const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:3000' : 'https://therapy-funnel.onrender.com';
+let adminToken = localStorage.getItem('tf_admin') || '';
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = (iso) => { try { return new Date(iso).toLocaleString('ru-RU'); } catch { return ''; } };
+
+async function api(path, opts={}) {
+  const headers = Object.assign({ 'Content-Type':'application/json' }, opts.headers||{});
+  if (adminToken) headers.Authorization = 'Bearer ' + adminToken;
+  const r = await fetch(API_BASE + path, Object.assign({}, opts, { headers }));
+  if (r.status === 401 || r.status === 403) { logout(); throw new Error('AUTH'); }
+  return r.json();
+}
+
+function logout(){ adminToken=''; localStorage.removeItem('tf_admin'); $('app').classList.add('hidden'); $('login').classList.remove('hidden'); $('logout').classList.add('hidden'); }
+
+$('loginBtn').addEventListener('click', async () => {
+  $('loginErr').textContent = '';
+  try {
+    const r = await fetch(API_BASE + '/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: $('pw').value }) });
+    const d = await r.json();
+    if (!r.ok) { $('loginErr').textContent = d.error || 'Ошибка'; return; }
+    adminToken = d.token; localStorage.setItem('tf_admin', adminToken);
+    show();
+  } catch { $('loginErr').textContent = 'Сеть недоступна'; }
+});
+$('logout').addEventListener('click', (e)=>{ e.preventDefault(); logout(); });
+
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  ['stats','users','sessions','settings'].forEach(n => $('tab-'+n).classList.add('hidden'));
+  $('tab-'+t.dataset.tab).classList.remove('hidden');
+  if (t.dataset.tab==='stats') loadStats();
+  if (t.dataset.tab==='users') loadUsers();
+  if (t.dataset.tab==='sessions') loadSessions();
+  if (t.dataset.tab==='settings') loadSettings();
+}));
+
+async function loadStats(){
+  const d = await api('/api/admin/stats');
+  $('tab-stats').innerHTML = `<div class="stats">
+    <div class="stat"><div class="n">${d.users}</div><div class="l">пользователей</div></div>
+    <div class="stat"><div class="n">${d.last7}</div><div class="l">новых за 7 дней</div></div>
+    <div class="stat"><div class="n">${d.sessions}</div><div class="l">сессий</div></div>
+    <div class="stat"><div class="n">${d.messages}</div><div class="l">сообщений</div></div>
+    <div class="stat"><div class="n">${d.blocked}</div><div class="l">заблокировано</div></div>
+  </div>`;
+}
+
+async function loadUsers(){
+  const d = await api('/api/admin/users');
+  $('tab-users').innerHTML = `<table><thead><tr><th>ID</th><th>Email</th><th>Тариф</th><th>Сессий</th><th>Создан</th><th>Статус</th><th></th></tr></thead><tbody>
+    ${(d.users||[]).map(u=>`<tr>
+      <td>${u.id}</td>
+      <td>${esc(u.email)}</td>
+      <td><span class="tag">${esc(u.tier)}</span></td>
+      <td>${u.sessions}</td>
+      <td class="muted">${fmt(u.created_at)}</td>
+      <td>${u.blocked ? '<span class="tag blocked">заблокирован</span>' : '<span class="tag">активен</span>'}</td>
+      <td><button class="btn mini ${u.blocked?'':'danger'}" data-block="${u.id}" data-state="${u.blocked?1:0}">${u.blocked?'Разблокировать':'Заблокировать'}</button></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+  $('tab-users').querySelectorAll('[data-block]').forEach(b => b.addEventListener('click', async () => {
+    const id = b.dataset.block; const blocked = b.dataset.state === '0';
+    await api(`/api/admin/users/${id}/block`, { method:'POST', body: JSON.stringify({ blocked }) });
+    loadUsers();
+  }));
+}
+
+async function loadSessions(){
+  const d = await api('/api/admin/sessions');
+  $('tab-sessions').innerHTML = `
+    <table><thead><tr><th>ID</th><th>User</th><th>Заголовок</th><th>Обновлена</th><th></th></tr></thead><tbody>
+    ${(d.sessions||[]).map(s=>`<tr>
+      <td>${s.id}</td><td>${s.user_id}</td><td>${esc(s.title)}</td><td class="muted">${fmt(s.updated_at)}</td>
+      <td><button class="btn mini btn-ghost" data-view="${s.id}">Открыть</button></td>
+    </tr>`).join('')}</tbody></table>
+    <div id="sessionView" style="margin-top:16px"></div>`;
+  $('tab-sessions').querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', async () => {
+    const d2 = await api('/api/admin/sessions/' + b.dataset.view);
+    $('sessionView').innerHTML = '<div class="msgs">' + (d2.messages||[]).map(m=>`
+      <div class="msg ${m.role==='user'?'user':'assistant'}"><div class="r">${m.role}</div>${esc(m.content)}</div>`).join('') + '</div>';
+  }));
+}
+
+async function loadSettings(){
+  const d = await api('/api/admin/settings');
+  const cur = (d.settings||[]).find(s => s.key === 'cbt_prompt');
+  $('tab-settings').innerHTML = `
+    <h2 style="margin-bottom:8px">Протокол движка</h2>
+    <p class="muted" style="margin-bottom:12px">Системный промпт для сессий. Пусто — используется встроенный.</p>
+    <textarea id="prompt" rows="16">${esc(cur ? cur.value : '')}</textarea>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="savePrompt">Сохранить</button>
+      <span id="saveMsg" class="muted"></span>
+    </div>`;
+  $('savePrompt').addEventListener('click', async () => {
+    await api('/api/admin/settings/cbt_prompt', { method:'PUT', body: JSON.stringify({ value: $('prompt').value }) });
+    $('saveMsg').textContent = 'сохранено ✓';
+    setTimeout(()=>{ $('saveMsg').textContent=''; }, 2000);
+  });
+}
+
+async function show(){
+  $('login').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('logout').classList.remove('hidden');
+  loadStats();
+}
+
+if (adminToken) show();
+</script>
+</body>
+</html>
