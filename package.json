@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "test": "echo \"No tests yet\" && exit 0",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report",
     "deploy": "gh-pages -d ."
   },
   "keywords": [
@@ -29,6 +32,7 @@
   },
   "homepage": "https://msilith.github.io/therapy-funnel",
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "serve": "^14.0.0"
   },
   "dependencies": {

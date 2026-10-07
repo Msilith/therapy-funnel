@@ -437,6 +437,11 @@
                 container.innerHTML += questionHTML;
             });
             updateProgress();
+            // On entering a fresh test the "next" button must stay disabled until an option is picked.
+            document.getElementById('prevBtn').disabled = true;
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = true;
+            nextBtn.textContent = t('buttons.next');
         }
 
         function restoreTestState() {
