@@ -571,7 +571,8 @@ app.post('/api/chat-trial', rateLimiter(20, 60000), async (req, res) => {
             { role: 'system', content: GUARD_PROMPT },
             { role: 'user', content: message }
           ],
-          max_tokens: 3,
+          max_tokens: 5,
+          thinking: { type: 'disabled' },
           temperature: 0
         })
       });
@@ -606,7 +607,7 @@ app.post('/api/chat-trial', rateLimiter(20, 60000), async (req, res) => {
       body: JSON.stringify({
         model: 'deepseek-v4-flash',
         messages,
-        max_tokens: 1024,
+        max_tokens: 2048,
         temperature: 0.7
       })
     });
@@ -749,7 +750,8 @@ app.post('/api/chat', authMiddleware, rateLimiter(30, 60000), async (req, res) =
             { role: 'system', content: GUARD_PROMPT },
             { role: 'user', content: message }
           ],
-          max_tokens: 3,
+          max_tokens: 5,
+          thinking: { type: 'disabled' },
           temperature: 0
         })
       });
@@ -784,7 +786,7 @@ app.post('/api/chat', authMiddleware, rateLimiter(30, 60000), async (req, res) =
       body: JSON.stringify({
         model,
         messages,
-        max_tokens: 1024,
+        max_tokens: 2048,
         temperature: 0.7
       })
     });
@@ -900,7 +902,8 @@ app.post('/api/sessions/:id/messages', authMiddleware, rateLimiter(30, 60000), a
         body: JSON.stringify({
           model: 'deepseek-v4-flash',
           messages: [{ role: 'system', content: GUARD_PROMPT }, { role: 'user', content: message }],
-          max_tokens: 3,
+          max_tokens: 5,
+          thinking: { type: 'disabled' },
           temperature: 0
         })
       });
@@ -925,7 +928,8 @@ app.post('/api/sessions/:id/messages', authMiddleware, rateLimiter(30, 60000), a
         body: JSON.stringify({
           model: 'deepseek-v4-flash',
           messages: [{ role: 'system', content: SAFETY_PROMPT }, { role: 'user', content: message }],
-          max_tokens: 3,
+          max_tokens: 5,
+          thinking: { type: 'disabled' },
           temperature: 0
         })
       });
@@ -960,7 +964,7 @@ app.post('/api/sessions/:id/messages', authMiddleware, rateLimiter(30, 60000), a
     const response = await fetch(`${DEEPSEEK_BASE}/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` },
-      body: JSON.stringify({ model: 'deepseek-v4-flash', messages, max_tokens: 1024, temperature: 0.7 })
+      body: JSON.stringify({ model: 'deepseek-v4-flash', messages, max_tokens: 2048, temperature: 0.7 })
     });
     if (!response.ok) {
       const err = await response.text();
