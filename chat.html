@@ -176,7 +176,7 @@
 
     <!-- Header -->
     <div class="chat-header">
-        <button class="back-btn" onclick="window.location.href='home.html'" title="Back">←</button>
+        <button class="back-btn" id="backBtn" onclick="window.location.href='home.html'" title="Back">←</button>
         <div class="avatar">🌿</div>
         <div class="info">
             <div class="name" id="headerName">AI-КПТ-практик</div>
@@ -232,7 +232,7 @@
                 const hKey = 'header' + initMode.charAt(0).toUpperCase() + initMode.slice(1);
                 document.getElementById('headerName').textContent = ct(hKey) || ct('headerName');
                 document.getElementById('modelStatus').textContent = ct('modelDefault');
-                document.getElementById('backBtn').title = ct('backTitle');
+                const bb = document.getElementById('backBtn'); if (bb) bb.title = ct('backTitle');
                 const nh = document.getElementById('navHome'); if (nh) nh.textContent = ct('navHome');
                 const nt = document.getElementById('navTest'); if (nt) nt.textContent = ct('navTest');
                 const nc = document.getElementById('navChat'); if (nc) nc.textContent = ct('navChat');
