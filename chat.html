@@ -35,8 +35,8 @@
         .topnav a { text-decoration: none; padding: 8px 12px; border-radius: 8px; font-size: 0.88rem; color: var(--muted); font-weight: 500; transition: all 0.2s; white-space: nowrap; }
         .topnav a:hover { background: var(--panel2); color: var(--text); }
         .topnav a.active { background: var(--panel2); color: var(--text); }
-        .topnav .brand { font-weight: 700; color: var(--text); margin-right: auto; font-size: 0.95rem; }
-        .topnav .brand span { color: var(--accent); }
+        .topnav .brand { font-weight: 700; color: var(--accent); margin-right: auto; font-size: 0.95rem; }
+        .topnav .brand span { color: inherit; }
         @media (max-width: 480px) { .topnav a { padding: 6px 9px; font-size: 0.8rem; } .topnav .brand { font-size: 0.88rem; } }
 
         /* Header */
@@ -161,6 +161,8 @@
             .msg { font-size: 0.9rem; }
             .chat-header { padding: 10px 12px; }
             .chat-input-wrap { padding: 8px 10px; }
+            .topnav-inner { gap: 2px; }
+            .topnav a { padding: 6px 7px; font-size: 0.78rem; }
         }
     </style>
 </head>
@@ -168,10 +170,10 @@
     <!-- Top Navigation -->
     <nav class="topnav">
         <div class="topnav-inner">
-            <span class="brand">Выход из <span>комнаты</span></span>
-            <a href="home.html" id="navHome">Главная</a>
+            <a class="brand" href="home.html">Выход из <span>комнаты</span></a>
             <a href="tests.html">Тесты</a>
-            <a href="chat.html" class="active" id="navChat">Сессия</a>
+            <a href="cabinet.html">Мои сессии</a>
+            <a href="help.html">Помощь</a>
         </div>
     </nav>
 

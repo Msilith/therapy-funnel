@@ -18,17 +18,28 @@
 
   nav { position:sticky; top:0; z-index:50; background:rgba(13,15,20,.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
   nav .wrap { display:flex; align-items:center; justify-content:space-between; height:64px; }
-  .logo { font-weight:700; letter-spacing:.2px; }
-  .logo span { color:var(--accent); }
+  .logo { font-weight:700; letter-spacing:.2px; color:var(--accent); }
+  .logo span { color:inherit; }
   .nav-links { display:flex; gap:22px; align-items:center; }
   .nav-links a { color:var(--muted); font-size:.92rem; }
   .nav-links a:hover { color:var(--text); }
+  .nav-links a.btn-primary { color:#fff; }
+  .nav-links a.btn-primary:hover { color:#fff; }
   .btn { display:inline-block; padding:12px 22px; border-radius:10px; font-weight:600; font-size:.95rem; transition:.2s; border:1px solid transparent; cursor:pointer; }
   .btn-primary { background:var(--accent); color:#fff; }
   .btn-primary:hover { background:var(--accent2); transform:translateY(-1px); }
   .btn-ghost { border-color:var(--line); color:var(--text); }
   .btn-ghost:hover { border-color:var(--accent); }
-  @media(max-width:760px){ .nav-links { display:none; } }
+  @media(max-width:760px){
+    .nav-links { display:flex; gap:6px; }
+    .nav-links a[href^="#"] { display:none; }
+    .nav-links #navCta { display:none; }
+    .nav-links a { font-size:.82rem; padding:6px 8px; }
+  }
+  @media(max-width:430px){
+    .logo { font-size:.9rem; }
+    .nav-links a { font-size:.76rem; padding:5px 5px; }
+  }
 
   header.hero { padding:96px 0 72px; text-align:center; }
   .kicker { display:inline-block; font-size:.82rem; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); border:1px solid var(--line); padding:6px 14px; border-radius:999px; margin-bottom:24px; }
@@ -44,6 +55,8 @@
   .lead { color:var(--muted); margin-bottom:38px; max-width:680px; }
 
   .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
+  #pain .grid { grid-template-columns:repeat(2,1fr); max-width:840px; margin:0 auto; }
+  @media(max-width:640px){ #pain .grid { grid-template-columns:1fr; } }
   .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:26px; }
   .card .ico { font-size:1.6rem; margin-bottom:12px; }
   .card h3 { font-size:1.08rem; margin-bottom:8px; }
@@ -87,6 +100,7 @@
       <a href="#who">Кому подходит</a>
       <a href="#faq">Вопросы</a>
       <a href="tests.html">Тесты</a>
+      <a href="help.html">Помощь</a>
       <a href="auth.html" id="navAuth">Войти</a>
       <a href="chat.html" class="btn btn-primary" id="navCta">Начать бесплатно</a>
       <a href="#" id="navLogout" style="display:none">Выйти</a>
@@ -100,7 +114,7 @@
     <h1>Ты умеешь разобрать <em>любую систему</em>.<br>Кроме одной — себя.</h1>
     <p class="sub">AI-КПТ-практик для разработчиков, инженеров и учёных. Работает с выгоранием, тревогой, синдромом самозванца и привычкой крутить одно и то же по кругу.</p>
     <div class="cta-row">
-      <a href="#start" class="btn btn-primary">Начать бесплатно</a>
+      <a href="chat.html" class="btn btn-primary" id="heroCta">Начать бесплатно</a>
       <a href="#how" class="btn btn-ghost">Как это работает</a>
     </div>
     <p class="microcopy">Первая сессия бесплатно · без установки · это практика, а не терапия</p>
@@ -186,7 +200,7 @@
       <h2>Сядь и поговори. Десять минут.</h2>
       <p>Бесплатная сессия без установки и регистрации. Дальше — вернёшься к своим сессиям, если захочет.</p>
       <div class="cta-row">
-        <a href="chat.html" class="btn btn-primary">Начать бесплатную сессию</a>
+        <a href="chat.html" class="btn btn-primary" id="finalCta">Начать бесплатную сессию</a>
         <a href="#how" class="btn btn-ghost">Как это работает</a>
       </div>
     </div>
@@ -203,18 +217,33 @@
 
 <script>
 (function () {
+  var API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? 'http://localhost:3000' : 'https://therapy-funnel.onrender.com';
   var token = localStorage.getItem('tf_token');
-  if (!token) return;
-
   var auth = document.getElementById('navAuth');
-  if (auth) { auth.textContent = 'Мои сессии'; auth.href = 'cabinet.html'; }
-
   var cta = document.getElementById('navCta');
-  if (cta) { cta.textContent = 'Продолжить'; cta.href = 'cabinet.html'; }
-
   var logout = document.getElementById('navLogout');
+  var hero = document.getElementById('heroCta');
+  var finalCta = document.getElementById('finalCta');
+
+  function loggedOut() {
+    if (auth) { auth.textContent = 'Войти'; auth.href = 'auth.html'; }
+    if (cta) { cta.textContent = 'Начать бесплатно'; cta.href = 'chat.html'; cta.style.display = ''; }
+    if (logout) logout.style.display = 'none';
+    if (hero) { hero.textContent = 'Начать бесплатно'; hero.href = 'chat.html'; }
+    if (finalCta) { finalCta.textContent = 'Начать бесплатную сессию'; finalCta.href = 'chat.html'; }
+  }
+
+  function loggedIn(hasSessions, isPro) {
+    if (auth) { auth.textContent = 'Мои сессии'; auth.href = 'cabinet.html'; }
+    if (cta) cta.style.display = 'none';
+    if (logout) logout.style.display = '';
+    var text = (isPro || hasSessions) ? 'Продолжить' : 'Начать сессию';
+    if (hero) { hero.textContent = text; hero.href = 'cabinet.html'; }
+    if (finalCta) { finalCta.textContent = text; finalCta.href = 'cabinet.html'; }
+  }
+
   if (logout) {
-    logout.style.display = '';
     logout.addEventListener('click', function (e) {
       e.preventDefault();
       localStorage.removeItem('tf_token');
@@ -223,10 +252,40 @@
     });
   }
 
-  document.querySelectorAll('a[href="chat.html"]').forEach(function (a) {
-    if (a.id === 'navCta') return;
-    a.href = 'cabinet.html';
-    if (/Начать/i.test(a.textContent)) a.textContent = 'Мои сессии';
+  if (!token) { loggedOut(); return; }
+
+  // Optimistic state until the API answers
+  if (auth) { auth.textContent = 'Мои сессии'; auth.href = 'cabinet.html'; }
+  if (cta) cta.style.display = 'none';
+  if (logout) logout.style.display = '';
+  if (hero) { hero.textContent = 'Продолжить'; hero.href = 'cabinet.html'; }
+  if (finalCta) { finalCta.textContent = 'Продолжить'; finalCta.href = 'cabinet.html'; }
+
+  var headers = { Authorization: 'Bearer ' + token };
+  var meReq = fetch(API + '/api/auth/me', { headers: headers })
+    .then(function (r) { return r.status === 401 ? { authError: true } : (r.ok ? r.json() : null); })
+    .catch(function () { return null; });
+  var sessReq = fetch(API + '/api/sessions', { headers: headers })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .catch(function () { return null; });
+
+  Promise.all([meReq, sessReq]).then(function (res) {
+    var u = res[0];
+    if (u && u.authError) {
+      localStorage.removeItem('tf_token');
+      localStorage.removeItem('tf_user');
+      loggedOut();
+      return;
+    }
+    if (!u) {
+      var cached = null;
+      try { cached = JSON.parse(localStorage.getItem('tf_user') || 'null'); } catch (e) {}
+      loggedIn(true, !!(cached && cached.isPro));
+      return;
+    }
+    localStorage.setItem('tf_user', JSON.stringify(u));
+    var sessions = (res[1] && res[1].sessions) || [];
+    loggedIn(sessions.length > 0, !!u.isPro);
   });
 })();
 </script>
