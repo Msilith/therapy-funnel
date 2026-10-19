@@ -30,17 +30,21 @@ const pool = new Pool({
 
 // ─── Rate Limiter ───
 const rateLimit = new Map();
+let rateLimitBuckets = 0;
 function rateLimiter(maxRequests, windowMs) {
+  const bucketId = ++rateLimitBuckets;
   return (req, res, next) => {
-    const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const fwd = req.headers['x-forwarded-for'];
+    const ip = (fwd ? String(fwd).split(',')[0].trim() : req.ip) || 'unknown';
+    const key = `${bucketId}:${ip}`;
     const now = Date.now();
-    if (!rateLimit.has(ip)) rateLimit.set(ip, []);
-    const timestamps = rateLimit.get(ip).filter(ts => now - ts < windowMs);
+    if (!rateLimit.has(key)) rateLimit.set(key, []);
+    const timestamps = rateLimit.get(key).filter(ts => now - ts < windowMs);
     if (timestamps.length >= maxRequests) {
-      return res.status(429).json({ error: 'Слишком много запросов. Подождите минуту.' });
+      return res.status(429).json({ error: 'Слишком много запросов. Подождите немного.' });
     }
     timestamps.push(now);
-    rateLimit.set(ip, timestamps);
+    rateLimit.set(key, timestamps);
     next();
   };
 }
