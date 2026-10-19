@@ -32,7 +32,7 @@
   .btn-ghost:hover { border-color:var(--accent); }
   @media(max-width:760px){
     .nav-links { display:flex; gap:6px; }
-    .nav-links a[href^="#"] { display:none; }
+    .nav-links a[href^="#"]:not(#navLogout) { display:none; }
     .nav-links #navCta { display:none; }
     .nav-links a { font-size:.82rem; padding:6px 8px; }
   }
