@@ -1277,6 +1277,26 @@ app.post('/api/admin/users/:id/block', adminMiddleware, async (req, res) => {
   } catch (err) { console.error('admin block:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
 });
 
+app.post('/api/admin/users/:id/tier', adminMiddleware, async (req, res) => {
+  try {
+    const tier = (req.body && req.body.tier) === 'pro' ? 'pro' : 'free';
+    await pool.query('UPDATE users SET tier = $2 WHERE id = $1', [req.params.id, tier]);
+    res.json({ ok: true, tier });
+  } catch (err) { console.error('admin tier:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
+});
+
+app.post('/api/admin/subscription-requests/:id/activate', adminMiddleware, async (req, res) => {
+  try {
+    const r = await pool.query('SELECT * FROM subscription_requests WHERE id = $1', [req.params.id]);
+    const row = r.rows[0];
+    if (!row) return res.status(404).json({ error: 'Заявка не найдена' });
+    if (!row.user_id) return res.status(400).json({ error: 'Заявка не привязана к аккаунту' });
+    await pool.query("UPDATE users SET tier = 'pro' WHERE id = $1", [row.user_id]);
+    await pool.query("UPDATE subscription_requests SET status = 'activated' WHERE id = $1", [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) { console.error('admin activate sub:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
+});
+
 app.get('/api/admin/sessions', adminMiddleware, async (req, res) => {
   try {
     const uid = req.query.user_id;

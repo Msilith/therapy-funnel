@@ -148,12 +148,19 @@ async function loadUsers(){
       <td>${u.sessions}</td>
       <td class="muted">${fmt(u.created_at)}</td>
       <td>${u.blocked ? '<span class="tag blocked">заблокирован</span>' : '<span class="tag">активен</span>'}</td>
-      <td><button class="btn mini ${u.blocked?'':'danger'}" data-block="${u.id}" data-state="${u.blocked?1:0}">${u.blocked?'Разблокировать':'Заблокировать'}</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn mini ${u.blocked?'':'danger'}" data-block="${u.id}" data-state="${u.blocked?1:0}">${u.blocked?'Разблокировать':'Заблокировать'}</button>
+        <button class="btn mini btn-ghost" data-uid="${u.id}" data-t="${u.tier==='pro'?'free':'pro'}">${u.tier==='pro'?'Снять Pro':'Сделать Pro'}</button>
+      </td>
     </tr>`).join('')}
   </tbody></table>`;
   $('tab-users').querySelectorAll('[data-block]').forEach(b => b.addEventListener('click', async () => {
     const id = b.dataset.block; const blocked = b.dataset.state === '0';
     await api(`/api/admin/users/${id}/block`, { method:'POST', body: JSON.stringify({ blocked }) });
+    loadUsers();
+  }));
+  $('tab-users').querySelectorAll('[data-uid]').forEach(b => b.addEventListener('click', async () => {
+    await api(`/api/admin/users/${b.dataset.uid}/tier`, { method:'POST', body: JSON.stringify({ tier: b.dataset.t }) });
     loadUsers();
   }));
 }
@@ -182,7 +189,7 @@ async function loadSubs(){
     return;
   }
   const names = { month: '1 месяц', quarter: '3 месяца', year: '1 год' };
-  $('tab-subs').innerHTML = `<table><thead><tr><th>ID</th><th>Email</th><th>Тариф</th><th>Сумма</th><th>Статус</th><th>Создана</th></tr></thead><tbody>
+  $('tab-subs').innerHTML = `<table><thead><tr><th>ID</th><th>Email</th><th>Тариф</th><th>Сумма</th><th>Статус</th><th>Создана</th><th>Действие</th></tr></thead><tbody>
     ${rows.map(r => `<tr>
       <td>${r.id}</td>
       <td>${esc(r.email)}</td>
@@ -190,8 +197,13 @@ async function loadSubs(){
       <td>${r.price ? r.price + ' ₽' : '—'}</td>
       <td><span class="tag">${esc(r.status)}</span></td>
       <td class="muted">${fmt(r.created_at)}</td>
+      <td>${r.user_id && r.status === 'new' ? `<button class="btn mini" data-activate="${r.id}">Активировать Pro</button>` : '—'}</td>
     </tr>`).join('')}
   </tbody></table>`;
+  $('tab-subs').querySelectorAll('[data-activate]').forEach(b => b.addEventListener('click', async () => {
+    await api(`/api/admin/subscription-requests/${b.dataset.activate}/activate`, { method:'POST', body:'{}' });
+    loadSubs();
+  }));
 }
 
 async function loadSettings(){
