@@ -96,17 +96,26 @@ function renderProfile(u){
   const plan = document.getElementById('pPlan');
   const left = document.getElementById('pLeft');
   const cta = document.getElementById('pCta');
-  if (u.tier === 'pro') {
+  if (u.isPro) {
     plan.textContent = 'Pro';
     plan.classList.add('pro');
-    left.textContent = 'Подписка активна · без ограничений';
-    cta.style.display = 'none';
+    left.textContent = u.proUntil
+      ? `Подписка до ${new Date(u.proUntil).toLocaleDateString('ru-RU')}`
+      : 'Подписка активна · без ограничений';
+    cta.style.display = '';
+    cta.textContent = 'Продлить подписку';
   } else {
     plan.textContent = 'Free';
     plan.classList.remove('pro');
-    const n = u.trialSessionsLeft ?? 0;
-    left.textContent = n > 0 ? `Осталось сообщений: ${n}` : 'Бесплатные сообщения закончились';
+    const n = u.trialMessagesLeft ?? u.trialSessionsLeft ?? 0;
+    let text = n > 0 ? `Осталось сообщений: ${n}` : 'Бесплатные сообщения закончились';
+    if (n > 0 && u.trialExpiresAt) {
+      const mins = Math.max(0, Math.ceil((new Date(u.trialExpiresAt).getTime() - Date.now()) / 60000));
+      text += ` · ${mins} мин`;
+    }
+    left.textContent = text;
     cta.style.display = '';
+    cta.textContent = 'Оформить подписку';
   }
 }
 

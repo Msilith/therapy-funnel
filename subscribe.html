@@ -19,7 +19,7 @@
   header{padding:44px 0 10px;text-align:center}
   h1{font-size:2rem;font-weight:800;letter-spacing:-.01em}
   .sub{color:var(--muted);margin-top:8px}
-  .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0 22px}
+  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:28px 0 22px}
   .plan{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;cursor:pointer;transition:.2s;position:relative;text-align:left}
   .plan:hover{border-color:var(--accent)}
   .plan.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
@@ -72,14 +72,27 @@
 
   <div id="buyBox">
     <div class="plans" id="plans">
-      <div class="plan" data-plan="month">
-        <div class="name">Месяц</div>
-        <div class="price">990 ₽</div>
-        <div class="per">990 ₽ / месяц</div>
+      <div class="plan" data-plan="week_intro" id="planIntro">
+        <span class="tag">Новым</span>
+        <div class="name">Первая неделя</div>
+        <div class="price">99 ₽</div>
+        <div class="per">7 дней</div>
+        <div class="note">Потом 290 ₽/нед или 990 ₽/мес</div>
+      </div>
+      <div class="plan" data-plan="week">
+        <div class="name">Неделя</div>
+        <div class="price">290 ₽</div>
+        <div class="per">7 дней · гибко</div>
         <div class="note"></div>
       </div>
-      <div class="plan active" data-plan="quarter">
+      <div class="plan" data-plan="month">
         <span class="tag">Выгодно</span>
+        <div class="name">Месяц</div>
+        <div class="price">990 ₽</div>
+        <div class="per">30 дней</div>
+        <div class="note">Дешевле, чем 4 недели по 290 ₽</div>
+      </div>
+      <div class="plan" data-plan="quarter">
         <div class="name">3 месяца</div>
         <div class="price">2 490 ₽</div>
         <div class="per">830 ₽ / месяц</div>
@@ -102,7 +115,7 @@
       </div>
       <button class="btn" id="buyBtn">Оформить подписку</button>
       <div class="err" id="errMsg"></div>
-      <p class="note">Это заявка на подписку: мы пришлём на указанный email ссылку на оплату и активируем доступ после платежа. Отписаться можно в любой момент.</p>
+      <p class="note">99 ₽ — первая неделя для новых аккаунтов (в первые 7 дней после регистрации). Дальше — 290 ₽/нед или 990 ₽/мес. Это заявка: мы пришлём ссылку на оплату и активируем доступ после платежа.</p>
     </div>
   </div>
 
@@ -113,26 +126,45 @@
 const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:3000' : 'https://therapy-funnel.onrender.com';
 const token = localStorage.getItem('tf_token');
-let plan = 'quarter';
+let plan = 'month';
+let introEligible = false;
+
+function selectPlan(name) {
+  plan = name;
+  document.querySelectorAll('.plan').forEach(x => x.classList.toggle('active', x.dataset.plan === name));
+}
+
+function applyUser(u) {
+  if (!u) return;
+  if (u.email) document.getElementById('email').value = u.email;
+  if (u.isPro) {
+    document.getElementById('proBox').classList.add('show');
+    document.getElementById('buyBox').style.display = 'none';
+    return;
+  }
+  const fresh = u.createdAt && (Date.now() - new Date(u.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000);
+  introEligible = !!fresh && !u.introUsed;
+  const introEl = document.getElementById('planIntro');
+  if (introEl) introEl.style.display = introEligible ? '' : 'none';
+  selectPlan(introEligible ? 'week_intro' : 'month');
+}
 
 const cached = localStorage.getItem('tf_user');
-if (cached) {
-  try {
-    const u = JSON.parse(cached);
-    if (u.email) document.getElementById('email').value = u.email;
-    if (u.tier === 'pro') {
-      document.getElementById('proBox').classList.add('show');
-      document.getElementById('buyBox').style.display = 'none';
-    }
-  } catch {}
+if (cached) { try { applyUser(JSON.parse(cached)); } catch {} }
+
+if (token) {
+  fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: 'Bearer ' + token } })
+    .then(r => r.ok ? r.json() : null)
+    .then(u => { if (u && !u.error) { localStorage.setItem('tf_user', JSON.stringify(u)); applyUser(u); } })
+    .catch(() => {});
+} else {
+  const introEl = document.getElementById('planIntro');
+  if (introEl) introEl.style.display = 'none';
+  selectPlan('month');
 }
 
 document.querySelectorAll('.plan').forEach(el => {
-  el.addEventListener('click', () => {
-    document.querySelectorAll('.plan').forEach(x => x.classList.remove('active'));
-    el.classList.add('active');
-    plan = el.dataset.plan;
-  });
+  el.addEventListener('click', () => selectPlan(el.dataset.plan));
 });
 
 document.getElementById('buyBtn').addEventListener('click', async () => {

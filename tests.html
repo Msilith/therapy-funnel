@@ -81,12 +81,12 @@ if (token) {
   document.getElementById('navCabinet').style.display = '';
   try {
     const u = JSON.parse(localStorage.getItem('tf_user') || '{}');
-    isPro = u.tier === 'pro';
+    isPro = !!u.isPro;
     if (u.email) document.getElementById('navCabinet').textContent = 'Мои сессии';
   } catch {}
   fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: 'Bearer ' + token } })
     .then(r => r.ok ? r.json() : null)
-    .then(u => { if (u && !u.error) { isPro = u.tier === 'pro'; localStorage.setItem('tf_user', JSON.stringify(u)); render(); } })
+    .then(u => { if (u && !u.error) { isPro = !!u.isPro; localStorage.setItem('tf_user', JSON.stringify(u)); render(); } })
     .catch(() => {});
 }
 

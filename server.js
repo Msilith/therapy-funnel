@@ -21,7 +21,17 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 
 const resend = new Resend(RESEND_API_KEY);
 const FROM_EMAIL = process.env.FROM_EMAIL || 'TherapyVoid <noreply@therapyvoid.com>';
+
+async function notifyAdmin(subject, html) {
+  if (!ADMIN_EMAIL) return;
+  try {
+    await resend.emails.send({ from: FROM_EMAIL, to: ADMIN_EMAIL, subject, html });
+  } catch (e) {
+    console.error('Admin notify error:', e.message);
+  }
+}
 const SITE_URL = (process.env.SITE_URL || 'https://therapyvoid.com').replace(/\/$/, '');
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
 
 // ─── PostgreSQL Pool (Neon) ───
 const pool = new Pool({
@@ -60,6 +70,39 @@ function normalizeEmail(email) {
 
 function sha256(text) {
   return crypto.createHash('sha256').update(text).digest('hex');
+}
+
+const TRIAL_MESSAGES = 30;
+const TRIAL_MINUTES = 60;
+
+function proActive(user) {
+  if (!user || user.blocked) return false;
+  if (user.tier !== 'pro') return false;
+  if (!user.pro_until) return true;
+  return new Date(user.pro_until).getTime() > Date.now();
+}
+
+function trialAvailable(user) {
+  if (!user) return false;
+  if (user.trial_messages_left == null || user.trial_messages_left <= 0) return false;
+  if (user.trial_expires_at && new Date(user.trial_expires_at).getTime() <= Date.now()) return false;
+  return true;
+}
+
+function publicUser(row) {
+  return {
+    id: row.id,
+    email: row.email,
+    tier: row.tier,
+    role: row.role,
+    isPro: proActive(row),
+    proUntil: row.pro_until || null,
+    introUsed: !!row.intro_used,
+    trialSessionsLeft: row.trial_messages_left,
+    trialMessagesLeft: row.trial_messages_left,
+    trialExpiresAt: row.trial_expires_at || null,
+    createdAt: row.created_at
+  };
 }
 
 // ─── CORS ───
@@ -185,6 +228,13 @@ async function initDB() {
 
       ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
       ALTER TABLE users ADD COLUMN IF NOT EXISTS blocked BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS pro_until TIMESTAMPTZ;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS intro_used BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_messages_left INTEGER DEFAULT 30;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_started_at TIMESTAMPTZ;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_expires_at TIMESTAMPTZ;
+      ALTER TABLE subscription_requests ADD COLUMN IF NOT EXISTS days INTEGER;
+      UPDATE users SET trial_messages_left = 30 WHERE trial_messages_left IS NULL;
     `);
     console.log('✓ PostgreSQL tables ready');
   } finally {
@@ -360,11 +410,11 @@ app.post('/api/auth/register', rateLimiter(5, 60000), async (req, res) => {
 
     const hash = bcrypt.hashSync(password, 10);
     const result = await pool.query(
-      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id',
+      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, tier, role, pro_until, intro_used, trial_messages_left, trial_expires_at, created_at',
       [email, hash]
     );
 
-    const user = { id: result.rows[0].id, email, tier: 'free', trialSessionsLeft: 6 };
+    const user = publicUser(result.rows[0]);
     const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({ token, user });
@@ -391,12 +441,7 @@ app.post('/api/auth/login', rateLimiter(10, 60000), async (req, res) => {
       return res.status(403).json({ error: 'Аккаунт заблокирован' });
     }
 
-    const user = {
-      id: row.id,
-      email: row.email,
-      tier: row.tier,
-      trialSessionsLeft: row.trial_sessions_left
-    };
+    const user = publicUser(row);
     const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
 
     res.json({ token, user });
@@ -409,18 +454,13 @@ app.post('/api/auth/login', rateLimiter(10, 60000), async (req, res) => {
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, tier, trial_sessions_left, created_at FROM users WHERE id = $1',
+      'SELECT id, email, tier, role, blocked, pro_until, intro_used, trial_messages_left, trial_expires_at, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
     const row = result.rows[0];
     if (!row) return res.status(404).json({ error: 'Пользователь не найден' });
-    res.json({
-      id: row.id,
-      email: row.email,
-      tier: row.tier,
-      trialSessionsLeft: row.trial_sessions_left,
-      createdAt: row.created_at
-    });
+    if (row.blocked) return res.status(403).json({ error: 'Аккаунт заблокирован' });
+    res.json(publicUser(row));
   } catch (err) {
     console.error('Auth me error:', err);
     res.status(500).json({ error: 'Ошибка сервера' });
@@ -534,7 +574,7 @@ app.post('/api/auth/verify', rateLimiter(10, 300000), async (req, res) => {
     // Create user
     const hash = bcrypt.hashSync(password, 10);
     const userResult = await pool.query(
-      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, tier, trial_sessions_left',
+      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, tier, role, pro_until, intro_used, trial_messages_left, trial_expires_at, created_at',
       [email, hash]
     );
     const newUser = userResult.rows[0];
@@ -564,12 +604,7 @@ app.post('/api/auth/verify', rateLimiter(10, 300000), async (req, res) => {
       }
     }
 
-    const user = {
-      id: newUser.id,
-      email: newUser.email,
-      tier: newUser.tier,
-      trialSessionsLeft: newUser.trial_sessions_left
-    };
+    const user = publicUser(newUser);
     const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({ token, user });
@@ -648,7 +683,9 @@ app.post('/api/auth/reset', rateLimiter(10, 300000), async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT pr.id AS reset_id, pr.user_id, u.email, u.tier, u.trial_sessions_left, u.blocked
+      `SELECT pr.id AS reset_id, pr.user_id,
+              u.id, u.email, u.tier, u.role, u.pro_until, u.intro_used,
+              u.trial_messages_left, u.trial_expires_at, u.created_at, u.blocked
        FROM password_resets pr
        JOIN users u ON u.id = pr.user_id
        WHERE pr.token_hash = $1 AND pr.used = FALSE AND pr.expires_at > NOW()`,
@@ -666,12 +703,7 @@ app.post('/api/auth/reset', rateLimiter(10, 300000), async (req, res) => {
     await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, row.user_id]);
     await pool.query('UPDATE password_resets SET used = TRUE WHERE user_id = $1', [row.user_id]);
 
-    const user = {
-      id: row.user_id,
-      email: row.email,
-      tier: row.tier,
-      trialSessionsLeft: row.trial_sessions_left
-    };
+    const user = publicUser(row);
     const jwtToken = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
     res.json({ success: true, token: jwtToken, user });
   } catch (err) {
@@ -878,19 +910,26 @@ app.post('/api/chat', authMiddleware, rateLimiter(30, 60000), async (req, res) =
     const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [req.user.id]);
     const user = userResult.rows[0];
     if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+    if (user.blocked) return res.status(403).json({ error: 'Аккаунт заблокирован' });
 
-    let model;
-    if (user.tier === 'pro') {
-      model = 'deepseek-v4-flash';
-    } else {
-      if (user.trial_sessions_left <= 0) {
+    const model = 'deepseek-v4-flash';
+    const isProUser = proActive(user);
+
+    if (!isProUser) {
+      if (!trialAvailable(user)) {
         return res.status(402).json({
-          error: 'Пробные сессии закончились',
+          error: 'Бесплатные сообщения закончились',
           code: 'TRIAL_EXHAUSTED',
-          message: 'Вы использовали все 6 пробных сообщений. Чтобы продолжить, оформите подписку.'
+          message: 'Бесплатный доступ закончился. Оформите подписку, чтобы продолжить.'
         });
       }
-      model = 'deepseek-v4-flash';
+      if (!user.trial_started_at) {
+        const st = await pool.query(
+          "UPDATE users SET trial_started_at = NOW(), trial_expires_at = NOW() + INTERVAL '60 minutes' WHERE id = $1 RETURNING trial_expires_at",
+          [req.user.id]
+        );
+        user.trial_expires_at = st.rows[0].trial_expires_at;
+      }
     }
 
     // ─── Guard: проверяем, психологический ли запрос ───
@@ -921,7 +960,8 @@ app.post('/api/chat', authMiddleware, rateLimiter(30, 60000), async (req, res) =
             reply: 'Я здесь только для психотерапевтических бесед. Если у вас есть запрос, связанный с чувствами, переживаниями или отношениями — я рядом.',
             model,
             rejected: true,
-            trialSessionsLeft: user.tier === 'free' ? user.trial_sessions_left : null
+            trialMessagesLeft: isProUser ? null : user.trial_messages_left,
+            trialExpiresAt: isProUser ? null : user.trial_expires_at
           });
         }
       }
@@ -957,11 +997,15 @@ app.post('/api/chat', authMiddleware, rateLimiter(30, 60000), async (req, res) =
     const data = await response.json();
     const reply = data.choices?.[0]?.message?.content || '...';
 
-    if (user.tier === 'free') {
-      await pool.query(
-        'UPDATE users SET trial_sessions_left = trial_sessions_left - 1 WHERE id = $1',
+    let trialMessagesLeft = null;
+    let trialExpiresAt = null;
+    if (!isProUser) {
+      const upd = await pool.query(
+        'UPDATE users SET trial_messages_left = GREATEST(trial_messages_left - 1, 0) WHERE id = $1 RETURNING trial_messages_left, trial_expires_at',
         [user.id]
       );
+      trialMessagesLeft = upd.rows[0].trial_messages_left;
+      trialExpiresAt = upd.rows[0].trial_expires_at;
     }
 
     await pool.query('INSERT INTO chat_sessions (user_id) VALUES ($1)', [user.id]);
@@ -969,7 +1013,9 @@ app.post('/api/chat', authMiddleware, rateLimiter(30, 60000), async (req, res) =
     res.json({
       reply,
       model,
-      trialSessionsLeft: user.tier === 'free' ? user.trial_sessions_left - 1 : null
+      trialMessagesLeft,
+      trialExpiresAt,
+      isPro: isProUser
     });
   } catch (err) {
     console.error('Chat error:', err);
@@ -1046,17 +1092,30 @@ app.post('/api/sessions/:id/messages', authMiddleware, rateLimiter(30, 60000), a
     const s = await pool.query('SELECT id FROM sessions WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
     if (!s.rows.length) return res.status(404).json({ error: 'Сессия не найдена' });
 
-    const urow = await pool.query('SELECT blocked, tier, trial_sessions_left FROM users WHERE id = $1', [req.user.id]);
+    const urow = await pool.query(
+      'SELECT blocked, tier, pro_until, trial_messages_left, trial_started_at, trial_expires_at FROM users WHERE id = $1',
+      [req.user.id]
+    );
     const currentUser = urow.rows[0];
     if (currentUser && currentUser.blocked) {
       return res.status(403).json({ error: 'Доступ ограничен. Свяжитесь с поддержкой.' });
     }
-    if (currentUser && currentUser.tier === 'free' && currentUser.trial_sessions_left <= 0) {
-      return res.status(402).json({
-        error: 'Бесплатные сообщения закончились',
-        code: 'TRIAL_EXHAUSTED',
-        message: 'Чтобы продолжить, оформите подписку.'
-      });
+    const userIsPro = proActive(currentUser);
+    if (!userIsPro) {
+      if (!currentUser || !trialAvailable(currentUser)) {
+        return res.status(402).json({
+          error: 'Бесплатные сообщения закончились',
+          code: 'TRIAL_EXHAUSTED',
+          message: 'Бесплатный доступ закончился. Оформите подписку, чтобы продолжить.'
+        });
+      }
+      if (!currentUser.trial_started_at) {
+        const st = await pool.query(
+          "UPDATE users SET trial_started_at = NOW(), trial_expires_at = NOW() + INTERVAL '60 minutes' WHERE id = $1 RETURNING trial_expires_at",
+          [req.user.id]
+        );
+        currentUser.trial_expires_at = st.rows[0].trial_expires_at;
+      }
     }
 
     // Guard: только психологический запрос
@@ -1148,16 +1207,18 @@ app.post('/api/sessions/:id/messages', authMiddleware, rateLimiter(30, 60000), a
     }
     await pool.query('UPDATE sessions SET updated_at = NOW() WHERE id = $1', [req.params.id]);
 
-    let trialSessionsLeft = null;
-    if (currentUser && currentUser.tier === 'free') {
+    let trialMessagesLeft = null;
+    let trialExpiresAt = null;
+    if (!userIsPro) {
       const upd = await pool.query(
-        'UPDATE users SET trial_sessions_left = GREATEST(trial_sessions_left - 1, 0) WHERE id = $1 RETURNING trial_sessions_left',
+        'UPDATE users SET trial_messages_left = GREATEST(trial_messages_left - 1, 0) WHERE id = $1 RETURNING trial_messages_left, trial_expires_at',
         [req.user.id]
       );
-      trialSessionsLeft = upd.rows[0].trial_sessions_left;
+      trialMessagesLeft = upd.rows[0].trial_messages_left;
+      trialExpiresAt = upd.rows[0].trial_expires_at;
     }
 
-    res.json({ reply, model: 'deepseek-v4-flash', trialSessionsLeft });
+    res.json({ reply, model: 'deepseek-v4-flash', trialMessagesLeft, trialExpiresAt, isPro: userIsPro });
   } catch (err) {
     console.error('Session message error:', err);
     res.status(500).json({ error: 'Внутренняя ошибка сервера' });
@@ -1165,22 +1226,57 @@ app.post('/api/sessions/:id/messages', authMiddleware, rateLimiter(30, 60000), a
 });
 
 // ─── Subscription requests (manual sales flow) ───
-const PLAN_PRICES = { month: 990, quarter: 2490, year: 7990 };
+const PLANS = {
+  week_intro: { price: 99, days: 7, label: 'Первая неделя' },
+  week: { price: 290, days: 7, label: 'Неделя' },
+  month: { price: 990, days: 30, label: 'Месяц' },
+  quarter: { price: 2490, days: 90, label: '3 месяца' },
+  year: { price: 7990, days: 365, label: 'Год' }
+};
 
 app.post('/api/subscription/request', rateLimiter(5, 600000), optionalAuth, async (req, res) => {
   const email = normalizeEmail(req.body.email || (req.user && req.user.email));
   const plan = String(req.body.plan || 'month');
+  const planInfo = PLANS[plan];
   if (!email || !isValidEmail(email)) {
     return res.status(400).json({ error: 'Укажите корректный email' });
   }
-  if (!PLAN_PRICES[plan]) {
+  if (!planInfo) {
     return res.status(400).json({ error: 'Неизвестный тариф' });
   }
+
   try {
+    const userId = req.user ? req.user.id : null;
+
+    if (plan === 'week_intro') {
+      if (!userId) {
+        return res.status(400).json({ error: 'Войдите в аккаунт, чтобы получить предложение 99 ₽' });
+      }
+      const r = await pool.query('SELECT created_at, intro_used FROM users WHERE id = $1', [userId]);
+      const u = r.rows[0];
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      if (!u || u.intro_used || new Date(u.created_at).getTime() < weekAgo) {
+        return res.status(400).json({ error: 'Предложение 99 ₽ доступно только новым аккаунтам в первые 7 дней' });
+      }
+    }
+
     await pool.query(
-      'INSERT INTO subscription_requests (user_id, email, plan, price) VALUES ($1, $2, $3, $4)',
-      [req.user ? req.user.id : null, email, plan, PLAN_PRICES[plan]]
+      'INSERT INTO subscription_requests (user_id, email, plan, price, days) VALUES ($1, $2, $3, $4, $5)',
+      [userId, email, plan, planInfo.price, planInfo.days]
     );
+
+    await notifyAdmin(
+      `Новая заявка на подписку: ${planInfo.label} — ${planInfo.price} ₽`,
+      `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#333">
+        <h2 style="color:#166088;margin:0 0 16px">Новая заявка на подписку</h2>
+        <p><b>Email:</b> ${email}</p>
+        <p><b>Тариф:</b> ${planInfo.label} (${plan}) — ${planInfo.price} ₽ / ${planInfo.days} дн.</p>
+        <p><b>User ID:</b> ${userId || '— (без входа)'}</p>
+        <p><b>Время:</b> ${new Date().toLocaleString('ru-RU')}</p>
+        <p style="margin-top:20px"><a href="${SITE_URL}/admin.html" style="background:#4a6fa5;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none">Открыть админку</a></p>
+      </div>`
+    );
+
     res.json({ success: true, message: 'Заявка принята. Мы пришлём ссылку на оплату на указанный email.' });
   } catch (err) {
     console.error('Subscription request error:', err);
@@ -1196,10 +1292,10 @@ app.get('/api/tests/:id', optionalAuth, async (req, res) => {
   if (!test.free) {
     if (!req.user) return res.status(401).json({ error: 'Требуется авторизация' });
     try {
-      const r = await pool.query('SELECT tier, blocked FROM users WHERE id = $1', [req.user.id]);
+      const r = await pool.query('SELECT tier, blocked, pro_until FROM users WHERE id = $1', [req.user.id]);
       const u = r.rows[0];
       if (!u || u.blocked) return res.status(403).json({ error: 'Доступ ограничен' });
-      if (u.tier !== 'pro') {
+      if (!proActive(u)) {
         return res.status(402).json({ error: 'Нужна подписка', code: 'SUBSCRIPTION_REQUIRED' });
       }
     } catch (err) {
@@ -1260,7 +1356,7 @@ app.post('/api/admin/login', rateLimiter(5, 300000), (req, res) => {
 app.get('/api/admin/users', adminMiddleware, async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT u.id, u.email, u.tier, u.role, u.blocked, u.created_at,
+      `SELECT u.id, u.email, u.tier, u.role, u.blocked, u.pro_until, u.created_at,
               (SELECT COUNT(*) FROM sessions s WHERE s.user_id = u.id) AS sessions,
               (SELECT COUNT(*) FROM messages m JOIN sessions s2 ON s2.id = m.session_id WHERE s2.user_id = u.id) AS messages
        FROM users u ORDER BY u.id DESC LIMIT 500`
@@ -1280,7 +1376,19 @@ app.post('/api/admin/users/:id/block', adminMiddleware, async (req, res) => {
 app.post('/api/admin/users/:id/tier', adminMiddleware, async (req, res) => {
   try {
     const tier = (req.body && req.body.tier) === 'pro' ? 'pro' : 'free';
-    await pool.query('UPDATE users SET tier = $2 WHERE id = $1', [req.params.id, tier]);
+    const days = Number(req.body && req.body.days);
+    if (tier === 'pro') {
+      if (days > 0) {
+        await pool.query(
+          "UPDATE users SET tier = 'pro', pro_until = GREATEST(COALESCE(pro_until, NOW()), NOW()) + ($2 || ' days')::interval WHERE id = $1",
+          [req.params.id, days]
+        );
+      } else {
+        await pool.query("UPDATE users SET tier = 'pro', pro_until = NULL WHERE id = $1", [req.params.id]);
+      }
+    } else {
+      await pool.query("UPDATE users SET tier = 'free', pro_until = NULL WHERE id = $1", [req.params.id]);
+    }
     res.json({ ok: true, tier });
   } catch (err) { console.error('admin tier:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
 });
@@ -1291,9 +1399,16 @@ app.post('/api/admin/subscription-requests/:id/activate', adminMiddleware, async
     const row = r.rows[0];
     if (!row) return res.status(404).json({ error: 'Заявка не найдена' });
     if (!row.user_id) return res.status(400).json({ error: 'Заявка не привязана к аккаунту' });
-    await pool.query("UPDATE users SET tier = 'pro' WHERE id = $1", [row.user_id]);
+    const days = row.days || (PLANS[row.plan] && PLANS[row.plan].days) || 30;
+    await pool.query(
+      "UPDATE users SET tier = 'pro', pro_until = GREATEST(COALESCE(pro_until, NOW()), NOW()) + ($2 || ' days')::interval WHERE id = $1",
+      [row.user_id, days]
+    );
+    if (row.plan === 'week_intro') {
+      await pool.query('UPDATE users SET intro_used = TRUE WHERE id = $1', [row.user_id]);
+    }
     await pool.query("UPDATE subscription_requests SET status = 'activated' WHERE id = $1", [req.params.id]);
-    res.json({ ok: true });
+    res.json({ ok: true, days });
   } catch (err) { console.error('admin activate sub:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
 });
 
@@ -1316,7 +1431,7 @@ app.get('/api/admin/sessions/:id', adminMiddleware, async (req, res) => {
 
 app.get('/api/admin/subscription-requests', adminMiddleware, async (req, res) => {
   try {
-    const r = await pool.query('SELECT id, user_id, email, plan, price, status, created_at FROM subscription_requests ORDER BY id DESC LIMIT 500');
+    const r = await pool.query('SELECT id, user_id, email, plan, price, days, status, created_at FROM subscription_requests ORDER BY id DESC LIMIT 500');
     res.json({ requests: r.rows });
   } catch (err) { console.error('admin subscription requests:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
 });

@@ -70,10 +70,10 @@ async function start() {
     if (r2.status === 402) {
       localStorage.removeItem('tf_pending_prompt');
       document.getElementById('emoji').textContent = '🔒';
-      document.getElementById('title').textContent = 'Бесплатные сообщения закончились';
-      document.getElementById('text').textContent = 'Чтобы обсудить результат и продолжать сессии, нужна подписка.';
+      document.getElementById('title').textContent = 'Бесплатный доступ закончился';
+      document.getElementById('text').textContent = 'Первая неделя — 99 ₽ для новых аккаунтов. Дальше — 290 ₽/нед или 990 ₽/мес.';
       document.getElementById('spinner').style.display = 'none';
-      document.getElementById('actions').innerHTML = '<a class="btn" href="subscribe.html">Оформить подписку</a><a class="btn ghost" href="cabinet.html">Мои сессии</a>';
+      document.getElementById('actions').innerHTML = '<a class="btn" href="subscribe.html">Продолжить за 99 ₽</a><a class="btn ghost" href="cabinet.html">Мои сессии</a>';
       return;
     }
 

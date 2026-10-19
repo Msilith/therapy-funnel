@@ -144,7 +144,7 @@ async function loadUsers(){
     ${(d.users||[]).map(u=>`<tr>
       <td>${u.id}</td>
       <td>${esc(u.email)}</td>
-      <td><span class="tag">${esc(u.tier)}</span></td>
+      <td><span class="tag">${esc(u.tier)}</span>${u.pro_until ? `<div class="muted" style="font-size:.72rem">до ${fmt(u.pro_until)}</div>` : ''}</td>
       <td>${u.sessions}</td>
       <td class="muted">${fmt(u.created_at)}</td>
       <td>${u.blocked ? '<span class="tag blocked">заблокирован</span>' : '<span class="tag">активен</span>'}</td>
@@ -188,12 +188,12 @@ async function loadSubs(){
     $('tab-subs').innerHTML = '<p class="muted">Заявок на подписку пока нет.</p>';
     return;
   }
-  const names = { month: '1 месяц', quarter: '3 месяца', year: '1 год' };
+  const names = { week_intro: 'Первая неделя (99 ₽)', week: 'Неделя', month: '1 месяц', quarter: '3 месяца', year: '1 год' };
   $('tab-subs').innerHTML = `<table><thead><tr><th>ID</th><th>Email</th><th>Тариф</th><th>Сумма</th><th>Статус</th><th>Создана</th><th>Действие</th></tr></thead><tbody>
     ${rows.map(r => `<tr>
       <td>${r.id}</td>
       <td>${esc(r.email)}</td>
-      <td>${esc(names[r.plan] || r.plan)}</td>
+      <td>${esc(names[r.plan] || r.plan)}${r.days ? `<div class="muted" style="font-size:.72rem">${r.days} дн.</div>` : ''}</td>
       <td>${r.price ? r.price + ' ₽' : '—'}</td>
       <td><span class="tag">${esc(r.status)}</span></td>
       <td class="muted">${fmt(r.created_at)}</td>

@@ -278,7 +278,7 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(r => r.json()).then(data => {
                     if (data.error) { logout(); }
-                    else { user = data; trialLeft = data.trialSessionsLeft; updateUI(); }
+                    else { user = data; trialLeft = data.trialMessagesLeft ?? data.trialSessionsLeft; updateUI(); }
                 }).catch(() => {});
                 return true;
             } catch { return false; }
@@ -312,17 +312,17 @@
                 badge.className = 'tier-badge tier-free';
                 status.textContent = `${ct('modelDefault')} · ${ct('trialLeft', {left: trialLeft})}`;
             } else if (user) {
-                if (user.tier === 'pro') {
+                if (user.isPro) {
                     badge.textContent = ct('tierPro');
                     badge.className = 'tier-badge tier-pro';
                     status.textContent = ct('modelPro');
                 } else {
                     badge.textContent = ct('tierFree');
                     badge.className = 'tier-badge tier-free';
-                    const left = trialLeft !== null ? trialLeft : user.trialSessionsLeft;
+                    const left = trialLeft !== null ? trialLeft : (user.trialMessagesLeft ?? user.trialSessionsLeft);
                     status.textContent = `${ct('modelDefault')} · ${ct('sessionsLeft')}: ${left ?? '?'}`;
                 }
-                if (trialLeft === 0 && user.tier !== 'pro') {
+                if (trialLeft === 0 && !user.isPro) {
                     document.getElementById('upgradeBanner').innerHTML = `${ct('trialExhausted')} <a href="subscribe.html">Оформить подписку →</a>`;
                     document.getElementById('upgradeBanner').classList.add('show');
                 }
@@ -331,7 +331,7 @@
             // Update badge element
             const badgeEl = document.getElementById('freeBadgeEl');
             if (badgeEl) {
-                const left = isTrialMode ? trialLeft : (trialLeft ?? user?.trialSessionsLeft);
+                const left = isTrialMode ? trialLeft : (trialLeft ?? (user?.trialMessagesLeft ?? user?.trialSessionsLeft));
                 badgeEl.textContent = isTrialMode ? ct('trialLeft', {left}) : ct('freeBadge', {left});
             }
         }
@@ -349,8 +349,8 @@
                 return;
             }
             if (messages.length === 0) {
-                const left = isTrialMode ? trialLeft : (trialLeft ?? user?.trialSessionsLeft);
-                const freeBadge = isTrialMode ? ct('trialLeft', {left}) : (user?.tier === 'pro' ? `Pro · ${ct('modelPro')}` : ct('freeBadge', {left}));
+                const left = isTrialMode ? trialLeft : (trialLeft ?? (user?.trialMessagesLeft ?? user?.trialSessionsLeft));
+                const freeBadge = isTrialMode ? ct('trialLeft', {left}) : (user?.isPro ? `Pro · ${ct('modelPro')}` : ct('freeBadge', {left}));
                 const wKey = 'welcome' + chatMode.charAt(0).toUpperCase() + chatMode.slice(1);
                 const eKey = 'emoji' + chatMode.charAt(0).toUpperCase() + chatMode.slice(1);
                 const wText = ct(wKey) || ct('welcomeText');
@@ -476,12 +476,14 @@
                     if (isTrialMode && data.trialLeft !== undefined) {
                         trialLeft = data.trialLeft;
                         localStorage.setItem('tf_trial_left', String(data.trialLeft));
+                    } else if (data.trialMessagesLeft !== null && data.trialMessagesLeft !== undefined) {
+                        trialLeft = data.trialMessagesLeft;
                     } else if (data.trialSessionsLeft !== null && data.trialSessionsLeft !== undefined) {
                         trialLeft = data.trialSessionsLeft;
                     }
 
-                    // After 11 messages (5 trial + 6 registered), show analysis
-                    if (!isTrialMode && user && user.tier === 'free' && trialLeft === 0) {
+                    // After the free trial ends, offer analysis/subscription
+                    if (!isTrialMode && user && !user.isPro && trialLeft === 0) {
                         showAnalysisOffer();
                     }
                 }
@@ -529,8 +531,8 @@
                 <div style="background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.45);">
                     <div style="font-size:2.8rem;margin-bottom:12px;">🔒</div>
                     <h2 style="color:var(--text);margin-bottom:8px;font-size:1.25rem;">${ct('trialExhaustedTitle')}</h2>
-                    <p style="color:var(--muted);margin-bottom:24px;line-height:1.55;">${ct('trialExhaustedText')}</p>
-                    <a href="subscribe.html" style="display:block;background:var(--accent);color:white;padding:15px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1.05rem;margin-bottom:12px;">Оформить подписку</a>
+                    <p style="color:var(--muted);margin-bottom:24px;line-height:1.55;">Первая неделя — <b style="color:var(--text)">99 ₽</b> для новых аккаунтов. Дальше — 290 ₽/нед или 990 ₽/мес.</p>
+                    <a href="subscribe.html" style="display:block;background:var(--accent);color:white;padding:15px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1.05rem;margin-bottom:12px;">Продолжить за 99 ₽</a>
                     <a href="#" id="subClose" style="color:var(--muted);font-size:0.9rem;text-decoration:none;">Позже</a>
                 </div>`;
             document.body.appendChild(modal);
