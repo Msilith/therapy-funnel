@@ -71,12 +71,14 @@
     <div class="tab active" data-tab="stats">Статистика</div>
     <div class="tab" data-tab="users">Пользователи</div>
     <div class="tab" data-tab="sessions">Сессии</div>
+    <div class="tab" data-tab="subs">Подписки</div>
     <div class="tab" data-tab="settings">Протокол</div>
   </div>
 
   <div id="tab-stats" class="section"></div>
   <div id="tab-users" class="section hidden"></div>
   <div id="tab-sessions" class="section hidden"></div>
+  <div id="tab-subs" class="section hidden"></div>
   <div id="tab-settings" class="section hidden"></div>
 </div>
 
@@ -114,11 +116,12 @@ $('logout').addEventListener('click', (e)=>{ e.preventDefault(); logout(); });
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   t.classList.add('active');
-  ['stats','users','sessions','settings'].forEach(n => $('tab-'+n).classList.add('hidden'));
+  ['stats','users','sessions','subs','settings'].forEach(n => $('tab-'+n).classList.add('hidden'));
   $('tab-'+t.dataset.tab).classList.remove('hidden');
   if (t.dataset.tab==='stats') loadStats();
   if (t.dataset.tab==='users') loadUsers();
   if (t.dataset.tab==='sessions') loadSessions();
+  if (t.dataset.tab==='subs') loadSubs();
   if (t.dataset.tab==='settings') loadSettings();
 }));
 
@@ -130,6 +133,7 @@ async function loadStats(){
     <div class="stat"><div class="n">${d.sessions}</div><div class="l">сессий</div></div>
     <div class="stat"><div class="n">${d.messages}</div><div class="l">сообщений</div></div>
     <div class="stat"><div class="n">${d.blocked}</div><div class="l">заблокировано</div></div>
+    <div class="stat"><div class="n">${d.subs || 0}</div><div class="l">заявок на подписку</div></div>
   </div>`;
 }
 
@@ -167,6 +171,26 @@ async function loadSessions(){
     $('sessionView').innerHTML = '<div class="msgs">' + (d2.messages||[]).map(m=>`
       <div class="msg ${m.role==='user'?'user':'assistant'}"><div class="r">${m.role}</div>${esc(m.content)}</div>`).join('') + '</div>';
   }));
+}
+
+async function loadSubs(){
+  const d = await api('/api/admin/subscription-requests');
+  const rows = d.requests || [];
+  if (!rows.length) {
+    $('tab-subs').innerHTML = '<p class="muted">Заявок на подписку пока нет.</p>';
+    return;
+  }
+  const names = { month: '1 месяц', quarter: '3 месяца', year: '1 год' };
+  $('tab-subs').innerHTML = `<table><thead><tr><th>ID</th><th>Email</th><th>Тариф</th><th>Сумма</th><th>Статус</th><th>Создана</th></tr></thead><tbody>
+    ${rows.map(r => `<tr>
+      <td>${r.id}</td>
+      <td>${esc(r.email)}</td>
+      <td>${esc(names[r.plan] || r.plan)}</td>
+      <td>${r.price ? r.price + ' ₽' : '—'}</td>
+      <td><span class="tag">${esc(r.status)}</span></td>
+      <td class="muted">${fmt(r.created_at)}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
 }
 
 async function loadSettings(){

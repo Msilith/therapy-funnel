@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://therapy-funnel.onrender.com; img-src 'self' data:;">
+<title>Подписка — Выход из комнаты</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0d0f14;--panel:#151922;--panel2:#1c2230;--text:#e8eaf0;--muted:#8b93a7;--accent:#5b8def;--accent2:#3f6fd0;--line:#242b3a;--good:#4ade80}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:820px;margin:0 auto;padding:0 20px}
+  nav{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(13,15,20,.85);backdrop-filter:blur(10px);z-index:5}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .logo{font-weight:700}.logo span{color:var(--accent)}
+  .navlinks{display:flex;gap:18px;align-items:center;font-size:.9rem;color:var(--muted)}
+  .navlinks a:hover{color:var(--text)}
+  header{padding:44px 0 10px;text-align:center}
+  h1{font-size:2rem;font-weight:800;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin-top:8px}
+  .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0 22px}
+  .plan{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;cursor:pointer;transition:.2s;position:relative;text-align:left}
+  .plan:hover{border-color:var(--accent)}
+  .plan.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .plan .name{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .plan .price{font-size:1.75rem;font-weight:800;margin:8px 0 2px}
+  .plan .per{color:var(--muted);font-size:.85rem}
+  .plan .note{color:var(--good);font-size:.78rem;margin-top:10px;min-height:18px}
+  .plan .tag{position:absolute;top:-9px;right:12px;background:var(--accent);color:#fff;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.04em}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:16px}
+  .card h2{font-size:1.05rem;margin-bottom:12px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}
+  .field input{width:100%;padding:13px 14px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);font-size:1rem;outline:none}
+  .field input:focus{border-color:var(--accent)}
+  .btn{display:block;width:100%;text-align:center;padding:14px;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;border:1px solid transparent;background:var(--accent);color:#fff;transition:.2s}
+  .btn:hover{background:#7aa2ff}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .note{color:var(--muted);font-size:.85rem;margin-top:12px;line-height:1.55}
+  .ok{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.35);color:#8ff0b0;border-radius:10px;padding:14px;margin-bottom:14px;display:none;line-height:1.5}
+  .ok.show{display:block}
+  .err{color:#f08a8a;font-size:.9rem;margin-top:10px;display:none}
+  .err.show{display:block}
+  .pro-box{display:none;background:rgba(91,141,239,.12);border:1px solid rgba(91,141,239,.4);border-radius:14px;padding:20px;margin:24px 0;text-align:center}
+  .pro-box.show{display:block}
+  footer{color:var(--muted);font-size:.8rem;text-align:center;padding:30px 0 50px}
+  @media(max-width:680px){.plans{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <div class="logo"><a href="cabinet.html">Выход из <span>комнаты</span></a></div>
+    <div class="navlinks">
+      <a href="cabinet.html">← Мои сессии</a>
+      <a href="home.html">Главная</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <header>
+    <h1>Подписка</h1>
+    <p class="sub">Сессии без лимита, сохранённая история и продолжение в любой момент.</p>
+  </header>
+
+  <div class="pro-box" id="proBox">
+    <strong>Подписка активна.</strong> У тебя безлимитные сессии.
+  </div>
+
+  <div id="buyBox">
+    <div class="plans" id="plans">
+      <div class="plan" data-plan="month">
+        <div class="name">Месяц</div>
+        <div class="price">990 ₽</div>
+        <div class="per">990 ₽ / месяц</div>
+        <div class="note"></div>
+      </div>
+      <div class="plan active" data-plan="quarter">
+        <span class="tag">Выгодно</span>
+        <div class="name">3 месяца</div>
+        <div class="price">2 490 ₽</div>
+        <div class="per">830 ₽ / месяц</div>
+        <div class="note">−16% к месячной цене</div>
+      </div>
+      <div class="plan" data-plan="year">
+        <div class="name">Год</div>
+        <div class="price">7 990 ₽</div>
+        <div class="per">666 ₽ / месяц</div>
+        <div class="note">−33% к месячной цене</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Оформление</h2>
+      <div class="ok" id="okMsg"></div>
+      <div class="field">
+        <label>Email для связи и оплаты</label>
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <button class="btn" id="buyBtn">Оформить подписку</button>
+      <div class="err" id="errMsg"></div>
+      <p class="note">Это заявка на подписку: мы пришлём на указанный email ссылку на оплату и активируем доступ после платежа. Отписаться можно в любой момент.</p>
+    </div>
+  </div>
+
+  <footer>Оплата обрабатывается вручную · вопросы: поддержка через email из письма</footer>
+</div>
+
+<script>
+const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:3000' : 'https://therapy-funnel.onrender.com';
+const token = localStorage.getItem('tf_token');
+let plan = 'quarter';
+
+const cached = localStorage.getItem('tf_user');
+if (cached) {
+  try {
+    const u = JSON.parse(cached);
+    if (u.email) document.getElementById('email').value = u.email;
+    if (u.tier === 'pro') {
+      document.getElementById('proBox').classList.add('show');
+      document.getElementById('buyBox').style.display = 'none';
+    }
+  } catch {}
+}
+
+document.querySelectorAll('.plan').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.plan').forEach(x => x.classList.remove('active'));
+    el.classList.add('active');
+    plan = el.dataset.plan;
+  });
+});
+
+document.getElementById('buyBtn').addEventListener('click', async () => {
+  const email = document.getElementById('email').value.trim();
+  const ok = document.getElementById('okMsg');
+  const err = document.getElementById('errMsg');
+  ok.classList.remove('show'); err.classList.remove('show');
+
+  if (!email) { err.textContent = 'Укажите email.'; err.classList.add('show'); return; }
+
+  const btn = document.getElementById('buyBtn');
+  btn.disabled = true; btn.textContent = 'Отправляем...';
+
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = 'Bearer ' + token;
+    const r = await fetch(`${API_BASE}/api/subscription/request`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ email, plan })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Не удалось отправить заявку');
+    ok.textContent = d.message || 'Заявка принята. Мы пришлём ссылку на оплату.';
+    ok.classList.add('show');
+    btn.textContent = 'Заявка отправлена';
+  } catch (e) {
+    err.textContent = e.message;
+    err.classList.add('show');
+    btn.disabled = false; btn.textContent = 'Оформить подписку';
+  }
+});
+</script>
+</body>
+</html>

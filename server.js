@@ -134,6 +134,16 @@ async function initDB() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS subscription_requests (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        email TEXT NOT NULL,
+        plan TEXT NOT NULL,
+        price INTEGER,
+        status TEXT DEFAULT 'new',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS sessions (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -864,7 +874,7 @@ app.post('/api/chat', authMiddleware, rateLimiter(30, 60000), async (req, res) =
         return res.status(402).json({
           error: 'Пробные сессии закончились',
           code: 'TRIAL_EXHAUSTED',
-          message: 'Вы использовали все 6 пробных сообщений. Чтобы продолжить, обновите тариф до Pro.'
+          message: 'Вы использовали все 6 пробных сообщений. Чтобы продолжить, оформите подписку.'
         });
       }
       model = 'deepseek-v4-flash';
@@ -1023,9 +1033,17 @@ app.post('/api/sessions/:id/messages', authMiddleware, rateLimiter(30, 60000), a
     const s = await pool.query('SELECT id FROM sessions WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
     if (!s.rows.length) return res.status(404).json({ error: 'Сессия не найдена' });
 
-    const urow = await pool.query('SELECT blocked FROM users WHERE id = $1', [req.user.id]);
-    if (urow.rows[0] && urow.rows[0].blocked) {
+    const urow = await pool.query('SELECT blocked, tier, trial_sessions_left FROM users WHERE id = $1', [req.user.id]);
+    const currentUser = urow.rows[0];
+    if (currentUser && currentUser.blocked) {
       return res.status(403).json({ error: 'Доступ ограничен. Свяжитесь с поддержкой.' });
+    }
+    if (currentUser && currentUser.tier === 'free' && currentUser.trial_sessions_left <= 0) {
+      return res.status(402).json({
+        error: 'Бесплатные сообщения закончились',
+        code: 'TRIAL_EXHAUSTED',
+        message: 'Чтобы продолжить, оформите подписку.'
+      });
     }
 
     // Guard: только психологический запрос
@@ -1117,10 +1135,43 @@ app.post('/api/sessions/:id/messages', authMiddleware, rateLimiter(30, 60000), a
     }
     await pool.query('UPDATE sessions SET updated_at = NOW() WHERE id = $1', [req.params.id]);
 
-    res.json({ reply, model: 'deepseek-v4-flash' });
+    let trialSessionsLeft = null;
+    if (currentUser && currentUser.tier === 'free') {
+      const upd = await pool.query(
+        'UPDATE users SET trial_sessions_left = GREATEST(trial_sessions_left - 1, 0) WHERE id = $1 RETURNING trial_sessions_left',
+        [req.user.id]
+      );
+      trialSessionsLeft = upd.rows[0].trial_sessions_left;
+    }
+
+    res.json({ reply, model: 'deepseek-v4-flash', trialSessionsLeft });
   } catch (err) {
     console.error('Session message error:', err);
     res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+});
+
+// ─── Subscription requests (manual sales flow) ───
+const PLAN_PRICES = { month: 990, quarter: 2490, year: 7990 };
+
+app.post('/api/subscription/request', rateLimiter(5, 600000), optionalAuth, async (req, res) => {
+  const email = normalizeEmail(req.body.email || (req.user && req.user.email));
+  const plan = String(req.body.plan || 'month');
+  if (!email || !isValidEmail(email)) {
+    return res.status(400).json({ error: 'Укажите корректный email' });
+  }
+  if (!PLAN_PRICES[plan]) {
+    return res.status(400).json({ error: 'Неизвестный тариф' });
+  }
+  try {
+    await pool.query(
+      'INSERT INTO subscription_requests (user_id, email, plan, price) VALUES ($1, $2, $3, $4)',
+      [req.user ? req.user.id : null, email, plan, PLAN_PRICES[plan]]
+    );
+    res.json({ success: true, message: 'Заявка принята. Мы пришлём ссылку на оплату на указанный email.' });
+  } catch (err) {
+    console.error('Subscription request error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 
@@ -1183,6 +1234,13 @@ app.get('/api/admin/sessions/:id', adminMiddleware, async (req, res) => {
   } catch (err) { console.error('admin session get:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
 });
 
+app.get('/api/admin/subscription-requests', adminMiddleware, async (req, res) => {
+  try {
+    const r = await pool.query('SELECT id, user_id, email, plan, price, status, created_at FROM subscription_requests ORDER BY id DESC LIMIT 500');
+    res.json({ requests: r.rows });
+  } catch (err) { console.error('admin subscription requests:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
+});
+
 app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
   try {
     const users = (await pool.query('SELECT COUNT(*) AS c FROM users')).rows[0].c;
@@ -1190,7 +1248,8 @@ app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
     const messages = (await pool.query('SELECT COUNT(*) AS c FROM messages')).rows[0].c;
     const blocked = (await pool.query('SELECT COUNT(*) AS c FROM users WHERE blocked = TRUE')).rows[0].c;
     const last7 = (await pool.query("SELECT COUNT(*) AS c FROM users WHERE created_at > NOW() - INTERVAL '7 days'")).rows[0].c;
-    res.json({ users, sessions, messages, blocked, last7 });
+    const subs = (await pool.query("SELECT COUNT(*) AS c FROM subscription_requests WHERE status = 'new'")).rows[0].c;
+    res.json({ users, sessions, messages, blocked, last7, subs });
   } catch (err) { console.error('admin stats:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
 });
 

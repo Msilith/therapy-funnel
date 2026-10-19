@@ -14,77 +14,83 @@
     <style>
         * {
             margin: 0; padding: 0; box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
         :root {
-            --primary: #4a6fa5; --secondary: #166088; --accent: #ff6b6b;
-            --light: #f8f9fa; --dark: #343a40; --radius: 12px;
+            --bg: #0d0f14; --panel: #151922; --panel2: #1c2230;
+            --text: #e8eaf0; --muted: #8b93a7;
+            --accent: #5b8def; --accent2: #3f6fd0; --line: #242b3a;
+            --radius: 14px;
         }
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: var(--bg);
             height: 100vh; height: 100dvh; display: flex; flex-direction: column;
-            color: var(--dark);
+            color: var(--text);
         }
 
         /* Top Nav */
-        .topnav { background: white; border-bottom: 1px solid #e9ecef; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,0.04); flex-shrink: 0; }
-        .topnav-inner { max-width: 800px; margin: 0 auto; display: flex; align-items: center; gap: 4px; padding: 4px 12px; }
-        .topnav a { text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 0.9rem; color: #555; font-weight: 500; transition: all 0.2s; white-space: nowrap; }
-        .topnav a:hover { background: #f0f0f0; color: var(--secondary); }
-        .topnav a.active { background: var(--primary); color: white; }
-        .topnav .brand { font-weight: 700; color: var(--secondary); margin-right: auto; font-size: 0.95rem; }
-        @media (max-width: 480px) { .topnav a { padding: 6px 10px; font-size: 0.8rem; } .topnav .brand { font-size: 0.85rem; } }
+        .topnav { border-bottom: 1px solid var(--line); background: rgba(13,15,20,.85); backdrop-filter: blur(10px); z-index: 100; flex-shrink: 0; }
+        .topnav-inner { max-width: 840px; margin: 0 auto; display: flex; align-items: center; gap: 4px; padding: 0 12px; height: 56px; }
+        .topnav a { text-decoration: none; padding: 8px 12px; border-radius: 8px; font-size: 0.88rem; color: var(--muted); font-weight: 500; transition: all 0.2s; white-space: nowrap; }
+        .topnav a:hover { background: var(--panel2); color: var(--text); }
+        .topnav a.active { background: var(--panel2); color: var(--text); }
+        .topnav .brand { font-weight: 700; color: var(--text); margin-right: auto; font-size: 0.95rem; }
+        .topnav .brand span { color: var(--accent); }
+        @media (max-width: 480px) { .topnav a { padding: 6px 9px; font-size: 0.8rem; } .topnav .brand { font-size: 0.88rem; } }
 
         /* Header */
         .chat-header {
-            background: white; padding: 14px 18px; display: flex;
-            align-items: center; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-            z-index: 10;
+            background: var(--panel); border-bottom: 1px solid var(--line);
+            padding: 12px 18px; display: flex;
+            align-items: center; gap: 12px; z-index: 10;
         }
         .chat-header .avatar {
             width: 40px; height: 40px; border-radius: 50%;
-            background: linear-gradient(45deg, #1a1a1a, #2a0a0a);
-            border: 2px solid #8b0000; display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; flex-shrink: 0;
+            background: var(--panel2); border: 1px solid var(--line);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.15rem; flex-shrink: 0;
         }
-        .chat-header .info { flex: 1; }
-        .chat-header .name { font-weight: 700; font-size: 0.95rem; color: var(--secondary); }
-        .chat-header .status { font-size: 0.75rem; color: #888; }
+        .chat-header .info { flex: 1; min-width: 0; }
+        .chat-header .name { font-weight: 700; font-size: 0.95rem; }
+        .chat-header .status { font-size: 0.75rem; color: var(--muted); }
         .chat-header .tier-badge {
-            font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; font-weight: 600;
+            font-size: 0.68rem; padding: 3px 9px; border-radius: 20px; font-weight: 700;
+            letter-spacing: 0.04em; text-transform: uppercase;
         }
-        .tier-free { background: #e9ecef; color: #666; }
-        .tier-pro { background: #ff6b6b; color: white; }
+        .tier-free { background: var(--panel2); border: 1px solid var(--line); color: var(--muted); }
+        .tier-pro { background: rgba(91,141,239,.16); border: 1px solid rgba(91,141,239,.45); color: #9db8f7; }
         .chat-header .back-btn {
             background: none; border: none; font-size: 1.4rem; cursor: pointer;
-            padding: 6px; color: #666; line-height: 1;
+            padding: 6px; color: var(--muted); line-height: 1;
         }
+        .chat-header .back-btn:hover { color: var(--text); }
 
         /* Messages */
         .chat-messages {
-            flex: 1; overflow-y: auto; padding: 16px;
+            flex: 1; overflow-y: auto; padding: 20px 16px;
             display: flex; flex-direction: column; gap: 12px;
+            max-width: 840px; width: 100%; margin: 0 auto;
         }
         .msg {
-            max-width: 85%; padding: 12px 16px; border-radius: 16px;
-            font-size: 0.95rem; line-height: 1.5; word-wrap: break-word;
-            animation: fadeIn 0.3s ease;
+            max-width: 85%; padding: 12px 16px; border-radius: 14px;
+            font-size: 0.95rem; line-height: 1.55; word-wrap: break-word;
+            white-space: pre-wrap; animation: fadeIn 0.25s ease;
         }
         .msg.user {
-            align-self: flex-end; background: var(--primary); color: white;
-            border-bottom-right-radius: 6px;
+            align-self: flex-end; background: var(--accent2); color: white;
+            border-bottom-right-radius: 4px;
         }
         .msg.ai {
-            align-self: flex-start; background: white; color: var(--dark);
-            border-bottom-left-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            align-self: flex-start; background: var(--panel); color: var(--text);
+            border: 1px solid var(--line); border-bottom-left-radius: 4px;
         }
         .msg.system {
-            align-self: center; background: #f8f9fa; color: #666; font-size: 0.8rem;
-            border-radius: 10px; max-width: 90%;
+            align-self: center; color: var(--muted); font-size: 0.82rem;
+            max-width: 90%; text-align: center;
         }
         .typing {
-            align-self: flex-start; padding: 12px 16px; font-size: 0.9rem; color: #888;
+            align-self: flex-start; padding: 12px 16px; font-size: 0.9rem; color: var(--muted);
         }
         .typing span { animation: blink 1.4s infinite; }
         .typing span:nth-child(2) { animation-delay: 0.2s; }
@@ -92,56 +98,61 @@
 
         /* Input */
         .chat-input-wrap {
-            background: white; padding: 10px 14px; display: flex; gap: 10px;
-            align-items: flex-end; box-shadow: 0 -1px 4px rgba(0,0,0,0.06);
-            padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
+            background: var(--panel); border-top: 1px solid var(--line);
+            padding: 12px 14px; display: flex; gap: 10px;
+            align-items: flex-end;
+            padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
         }
         .chat-input-wrap textarea {
-            flex: 1; border: 2px solid #e9ecef; border-radius: 20px;
-            padding: 10px 16px; font-size: 0.95rem; resize: none; outline: none;
+            flex: 1; background: var(--panel2); border: 1px solid var(--line);
+            border-radius: 12px; padding: 12px 14px; font-size: 0.95rem;
+            color: var(--text); resize: none; outline: none;
             max-height: 120px; font-family: inherit; line-height: 1.4;
         }
-        .chat-input-wrap textarea:focus { border-color: var(--primary); }
+        .chat-input-wrap textarea:focus { border-color: var(--accent); }
+        .chat-input-wrap textarea::placeholder { color: var(--muted); }
         .send-btn {
-            width: 44px; height: 44px; border-radius: 50%; border: none;
-            background: var(--primary); color: white; font-size: 1.2rem;
+            width: 48px; height: 48px; border-radius: 12px; border: none;
+            background: var(--accent); color: white; font-size: 1.2rem;
             cursor: pointer; flex-shrink: 0; touch-action: manipulation;
             transition: all 0.2s;
         }
-        .send-btn:hover { background: var(--secondary); }
+        .send-btn:hover { background: #7aa2ff; }
         .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         /* Upgrade banner */
         .upgrade-banner {
-            background: linear-gradient(135deg, #ff6b6b, #e74c3c); color: white;
-            text-align: center; padding: 10px; font-size: 0.85rem; font-weight: 600;
+            background: rgba(91,141,239,.12); border-bottom: 1px solid rgba(91,141,239,.3);
+            color: #c9d8fb; text-align: center; padding: 10px; font-size: 0.85rem; font-weight: 600;
             display: none;
         }
         .upgrade-banner.show { display: block; }
+        .upgrade-banner a { color: #fff; text-decoration: underline; }
 
         /* Empty state */
         .empty-state {
             flex: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; text-align: center; color: #888; padding: 20px;
+            justify-content: center; text-align: center; color: var(--muted); padding: 20px;
         }
-        .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
-        .empty-state h3 { color: var(--secondary); margin-bottom: 8px; }
-        .empty-state p { font-size: 0.9rem; max-width: 280px; line-height: 1.5; }
+        .empty-state .emoji { font-size: 2.8rem; margin-bottom: 12px; }
+        .empty-state h3 { color: var(--text); margin-bottom: 8px; }
+        .empty-state p { font-size: 0.9rem; max-width: 300px; line-height: 1.55; }
 
         /* Login prompt */
         .login-prompt {
             flex: 1; display: flex; flex-direction: column; align-items: center;
             justify-content: center; text-align: center; padding: 20px;
         }
-        .login-prompt h2 { color: var(--secondary); margin-bottom: 10px; }
-        .login-prompt p { color: #666; margin-bottom: 20px; font-size: 0.9rem; }
+        .login-prompt .emoji { font-size: 2.8rem; margin-bottom: 12px; }
+        .login-prompt h2 { color: var(--text); margin-bottom: 10px; }
+        .login-prompt p { color: var(--muted); margin-bottom: 20px; font-size: 0.92rem; line-height: 1.55; }
         .login-prompt .btn {
-            padding: 14px 32px; border-radius: 8px; border: none; font-size: 1rem;
+            padding: 14px 32px; border-radius: 10px; border: none; font-size: 1rem;
             font-weight: 600; cursor: pointer; min-height: 48px;
-            background: var(--primary); color: white; text-decoration: none;
+            background: var(--accent); color: white; text-decoration: none;
             display: inline-block; touch-action: manipulation;
         }
-        .login-prompt .btn:hover { background: var(--secondary); }
+        .login-prompt .btn:hover { background: #7aa2ff; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
@@ -157,7 +168,7 @@
     <!-- Top Navigation -->
     <nav class="topnav">
         <div class="topnav-inner">
-            <span class="brand">Выход из комнаты</span>
+            <span class="brand">Выход из <span>комнаты</span></span>
             <a href="home.html" id="navHome">Главная</a>
             <a href="chat.html" class="active" id="navChat">Сессия</a>
         </div>
@@ -168,8 +179,8 @@
         <button class="back-btn" onclick="window.location.href='home.html'" title="Back">←</button>
         <div class="avatar">🌿</div>
         <div class="info">
-            <div class="name" id="headerName">AI Guide</div>
-            <div class="status" id="modelStatus">DeepSeek V3</div>
+            <div class="name" id="headerName">AI-КПТ-практик</div>
+            <div class="status" id="modelStatus">AI-КПТ</div>
         </div>
         <span class="tier-badge tier-free" id="tierBadge">Free</span>
     </div>
@@ -181,8 +192,8 @@
     <div id="contentArea" style="flex:1; display:flex; flex-direction:column; overflow:hidden;"></div>
 
     <!-- Footer -->
-    <div style="text-align:center;padding:4px 0;font-size:0.7rem;color:#aaa;background:white;">
-        <a href="tos.html" style="color:#aaa;text-decoration:none;" id="footerTos">Terms</a>
+    <div style="text-align:center;padding:4px 0;font-size:0.7rem;color:var(--muted);background:var(--panel);border-top:1px solid var(--line);">
+        <a href="tos.html" style="color:var(--muted);text-decoration:none;" id="footerTos">Terms</a>
         &nbsp;·&nbsp;
         <a href="privacy.html" style="color:#aaa;text-decoration:none;" id="footerPrivacy">Privacy</a>
     </div>
@@ -311,7 +322,7 @@
                     status.textContent = `${ct('modelDefault')} · ${ct('sessionsLeft')}: ${left ?? '?'}`;
                 }
                 if (trialLeft === 0 && user.tier !== 'pro') {
-                    document.getElementById('upgradeBanner').textContent = ct('trialExhausted');
+                    document.getElementById('upgradeBanner').innerHTML = `${ct('trialExhausted')} <a href="subscribe.html">Оформить подписку →</a>`;
                     document.getElementById('upgradeBanner').classList.add('show');
                 }
             }
@@ -343,7 +354,7 @@
                 const eKey = 'emoji' + chatMode.charAt(0).toUpperCase() + chatMode.slice(1);
                 const wText = ct(wKey) || ct('welcomeText');
                 const emoji = ct(eKey) || '🌿';
-                const trialNotice = isTrialMode ? `<p style="font-size:0.8rem; color:#166088; margin-top:8px;">${ct('trialWelcome')}</p>` : '';
+                const trialNotice = isTrialMode ? `<p style="font-size:0.8rem; color:var(--accent); margin-top:8px;">${ct('trialWelcome')}</p>` : '';
                 contentArea.innerHTML = `
                     <div class="chat-messages" id="chatMessages">
                         <div class="empty-state">
@@ -351,7 +362,7 @@
                             <h3>${ct('welcomeTitle')}</h3>
                             <p>${wText}</p>
                             ${trialNotice}
-                            <p style="font-size:0.75rem; color:#aaa; margin-top:10px;" id="freeBadgeEl">${freeBadge}</p>
+                            <p style="font-size:0.75rem; color:var(--muted); margin-top:10px;" id="freeBadgeEl">${freeBadge}</p>
                         </div>
                     </div>
                     <div class="chat-input-wrap">
@@ -454,6 +465,7 @@
                             showTrialExhaustedModal();
                         } else {
                             messages.push({ role: 'system', content: ct('trialExhausted') });
+                            showSubscriptionModal();
                         }
                     } else {
                         messages.push({ role: 'system', content: `⚠️ ${data.error || ct('errorServer')}` });
@@ -497,14 +509,32 @@
             const modal = document.createElement('div');
             modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;';
             modal.innerHTML = `
-                <div style="background:white;border-radius:16px;padding:32px;max-width:380px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
-                    <div style="font-size:3rem;margin-bottom:12px;">🌿</div>
-                    <h2 style="color:#166088;margin-bottom:8px;">${ct('trialExhaustedTitle')}</h2>
-                    <p style="color:#666;margin-bottom:24px;line-height:1.5;">${ct('trialExhaustedText')}</p>
-                    <a href="auth.html?redirect=chat" style="display:block;background:#4a6fa5;color:white;padding:16px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1.1rem;margin-bottom:12px;">${ct('trialRegisterBtn')}</a>
-                    <a href="auth.html?redirect=chat" style="color:#888;font-size:0.9rem;text-decoration:none;">${ct('trialLoginBtn')}</a>
+                <div style="background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.45);">
+                    <div style="font-size:2.8rem;margin-bottom:12px;">🌿</div>
+                    <h2 style="color:var(--text);margin-bottom:8px;font-size:1.25rem;">${ct('trialExhaustedTitle')}</h2>
+                    <p style="color:var(--muted);margin-bottom:24px;line-height:1.55;">${ct('trialExhaustedText')}</p>
+                    <a href="auth.html?redirect=chat" style="display:block;background:var(--accent);color:white;padding:15px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1.05rem;margin-bottom:12px;">${ct('trialRegisterBtn')}</a>
+                    <a href="auth.html?redirect=chat" style="color:var(--muted);font-size:0.9rem;text-decoration:none;">${ct('trialLoginBtn')}</a>
                 </div>`;
             document.body.appendChild(modal);
+        }
+
+        function showSubscriptionModal() {
+            if (document.getElementById('subModal')) return;
+            const modal = document.createElement('div');
+            modal.id = 'subModal';
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;';
+            modal.innerHTML = `
+                <div style="background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.45);">
+                    <div style="font-size:2.8rem;margin-bottom:12px;">🔒</div>
+                    <h2 style="color:var(--text);margin-bottom:8px;font-size:1.25rem;">${ct('trialExhaustedTitle')}</h2>
+                    <p style="color:var(--muted);margin-bottom:24px;line-height:1.55;">${ct('trialExhaustedText')}</p>
+                    <a href="subscribe.html" style="display:block;background:var(--accent);color:white;padding:15px;border-radius:10px;text-decoration:none;font-weight:600;font-size:1.05rem;margin-bottom:12px;">Оформить подписку</a>
+                    <a href="#" id="subClose" style="color:var(--muted);font-size:0.9rem;text-decoration:none;">Позже</a>
+                </div>`;
+            document.body.appendChild(modal);
+            const close = modal.querySelector('#subClose');
+            if (close) close.addEventListener('click', (e) => { e.preventDefault(); modal.remove(); });
         }
 
         async function showAnalysisOffer() {

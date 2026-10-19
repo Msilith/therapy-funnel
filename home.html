@@ -86,8 +86,9 @@
       <a href="#how">Как это работает</a>
       <a href="#who">Кому подходит</a>
       <a href="#faq">Вопросы</a>
-      <a href="auth.html">Войти</a>
-      <a href="chat.html" class="btn btn-primary">Начать бесплатно</a>
+      <a href="auth.html" id="navAuth">Войти</a>
+      <a href="chat.html" class="btn btn-primary" id="navCta">Начать бесплатно</a>
+      <a href="#" id="navLogout" style="display:none">Выйти</a>
     </div>
   </div>
 </nav>
@@ -197,6 +198,36 @@
     <p>© 2026 Выход из комнаты</p>
   </div>
 </footer>
+
+<script>
+(function () {
+  var token = localStorage.getItem('tf_token');
+  if (!token) return;
+
+  var auth = document.getElementById('navAuth');
+  if (auth) { auth.textContent = 'Мои сессии'; auth.href = 'cabinet.html'; }
+
+  var cta = document.getElementById('navCta');
+  if (cta) { cta.textContent = 'Продолжить'; cta.href = 'cabinet.html'; }
+
+  var logout = document.getElementById('navLogout');
+  if (logout) {
+    logout.style.display = '';
+    logout.addEventListener('click', function (e) {
+      e.preventDefault();
+      localStorage.removeItem('tf_token');
+      localStorage.removeItem('tf_user');
+      location.reload();
+    });
+  }
+
+  document.querySelectorAll('a[href="chat.html"]').forEach(function (a) {
+    if (a.id === 'navCta') return;
+    a.href = 'cabinet.html';
+    if (/Начать/i.test(a.textContent)) a.textContent = 'Мои сессии';
+  });
+})();
+</script>
 
 </body>
 </html>
