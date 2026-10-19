@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const { Resend } = require('resend');
 const crypto = require('crypto');
+const TESTS = require('./tests-content');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1185,6 +1186,29 @@ app.post('/api/subscription/request', rateLimiter(5, 600000), optionalAuth, asyn
     console.error('Subscription request error:', err);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
+});
+
+// ─── Tests ───
+app.get('/api/tests/:id', optionalAuth, async (req, res) => {
+  const test = TESTS.find(t => t.id === req.params.id);
+  if (!test) return res.status(404).json({ error: 'Тест не найден' });
+
+  if (!test.free) {
+    if (!req.user) return res.status(401).json({ error: 'Требуется авторизация' });
+    try {
+      const r = await pool.query('SELECT tier, blocked FROM users WHERE id = $1', [req.user.id]);
+      const u = r.rows[0];
+      if (!u || u.blocked) return res.status(403).json({ error: 'Доступ ограничен' });
+      if (u.tier !== 'pro') {
+        return res.status(402).json({ error: 'Нужна подписка', code: 'SUBSCRIPTION_REQUIRED' });
+      }
+    } catch (err) {
+      console.error('Test access error:', err);
+      return res.status(500).json({ error: 'Ошибка сервера' });
+    }
+  }
+
+  res.json({ test });
 });
 
 // ─── Test results ───

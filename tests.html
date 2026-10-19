@@ -92,7 +92,7 @@ if (token) {
 
 function render() {
   const list = document.getElementById('list');
-  list.innerHTML = (window.TESTS || []).map(t => {
+  list.innerHTML = (window.TESTS_META || []).map(t => {
     const unlocked = t.free || isPro;
     const badge = t.free
       ? '<span class="badge free">Бесплатно</span>'
