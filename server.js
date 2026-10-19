@@ -20,6 +20,7 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 
 const resend = new Resend(RESEND_API_KEY);
 const FROM_EMAIL = process.env.FROM_EMAIL || 'TherapyVoid <noreply@therapyvoid.com>';
+const SITE_URL = (process.env.SITE_URL || 'https://therapyvoid.com').replace(/\/$/, '');
 
 // ─── PostgreSQL Pool (Neon) ───
 const pool = new Pool({
@@ -46,6 +47,14 @@ function rateLimiter(maxRequests, windowMs) {
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+function sha256(text) {
+  return crypto.createHash('sha256').update(text).digest('hex');
 }
 
 // ─── CORS ───
@@ -107,6 +116,15 @@ async function initDB() {
         id SERIAL PRIMARY KEY,
         email TEXT NOT NULL,
         code TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        used BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS password_resets (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token_hash TEXT NOT NULL,
         expires_at TIMESTAMPTZ NOT NULL,
         used BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMPTZ DEFAULT NOW()
@@ -298,16 +316,17 @@ function optionalAuth(req, res, next) {
 
 // ─── Auth Routes ───
 app.post('/api/auth/register', rateLimiter(5, 60000), async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password || password.length < 4) {
-    return res.status(400).json({ error: 'Email и пароль (мин 4 символа) обязательны' });
+  const email = normalizeEmail(req.body.email);
+  const { password } = req.body;
+  if (!email || !password || password.length < 8) {
+    return res.status(400).json({ error: 'Email и пароль (мин 8 символов) обязательны' });
   }
   if (!isValidEmail(email)) {
     return res.status(400).json({ error: 'Некорректный формат email' });
   }
 
   try {
-    const exists = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    const exists = await pool.query('SELECT id FROM users WHERE LOWER(email) = $1', [email]);
     if (exists.rows.length > 0) {
       return res.status(409).json({ error: 'Пользователь с таким email уже существует' });
     }
@@ -329,16 +348,20 @@ app.post('/api/auth/register', rateLimiter(5, 60000), async (req, res) => {
 });
 
 app.post('/api/auth/login', rateLimiter(10, 60000), async (req, res) => {
-  const { email, password } = req.body;
+  const email = normalizeEmail(req.body.email);
+  const { password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email и пароль обязательны' });
   }
 
   try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const result = await pool.query('SELECT * FROM users WHERE LOWER(email) = $1', [email]);
     const row = result.rows[0];
     if (!row || !bcrypt.compareSync(password, row.password_hash)) {
       return res.status(401).json({ error: 'Неверный email или пароль' });
+    }
+    if (row.blocked) {
+      return res.status(403).json({ error: 'Аккаунт заблокирован' });
     }
 
     const user = {
@@ -397,7 +420,7 @@ function generateCode() {
 }
 
 app.post('/api/auth/send-code', rateLimiter(3, 300000), async (req, res) => {
-  const { email } = req.body;
+  const email = normalizeEmail(req.body.email);
   if (!email || !isValidEmail(email)) {
     return res.status(400).json({ error: 'Некорректный email' });
   }
@@ -407,7 +430,7 @@ app.post('/api/auth/send-code', rateLimiter(3, 300000), async (req, res) => {
 
   try {
     // Check if already registered
-    const exists = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    const exists = await pool.query('SELECT id FROM users WHERE LOWER(email) = $1', [email]);
     if (exists.rows.length > 0) {
       return res.status(409).json({ error: 'Пользователь с таким email уже существует' });
     }
@@ -454,18 +477,24 @@ app.post('/api/auth/send-code', rateLimiter(3, 300000), async (req, res) => {
 });
 
 app.post('/api/auth/verify', rateLimiter(10, 300000), async (req, res) => {
-  const { email, code, password, trialId } = req.body;
+  const email = normalizeEmail(req.body.email);
+  const { code, password, trialId } = req.body;
   if (!email || !code || !password) {
     return res.status(400).json({ error: 'Email, код и пароль обязательны' });
   }
-  if (password.length < 4) {
-    return res.status(400).json({ error: 'Пароль минимум 4 символа' });
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Пароль минимум 8 символов' });
   }
 
   try {
+    const exists = await pool.query('SELECT id FROM users WHERE LOWER(email) = $1', [email]);
+    if (exists.rows.length > 0) {
+      return res.status(409).json({ error: 'Пользователь с таким email уже существует' });
+    }
+
     // Verify code
     const codeResult = await pool.query(
-      'SELECT * FROM email_codes WHERE email = $1 AND code = $2 AND used = FALSE AND expires_at > NOW()',
+      'SELECT * FROM email_codes WHERE LOWER(email) = $1 AND code = $2 AND used = FALSE AND expires_at > NOW()',
       [email, code]
     );
     if (codeResult.rows.length === 0) {
@@ -519,6 +548,107 @@ app.post('/api/auth/verify', rateLimiter(10, 300000), async (req, res) => {
     res.status(201).json({ token, user });
   } catch (err) {
     console.error('Verify error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// ─── Password Reset ───
+app.post('/api/auth/forgot', rateLimiter(3, 300000), async (req, res) => {
+  const email = normalizeEmail(req.body.email);
+  if (!email || !isValidEmail(email)) {
+    return res.status(400).json({ error: 'Некорректный email' });
+  }
+  const genericMessage = 'Если такой аккаунт существует, мы отправили письмо со ссылкой для сброса пароля.';
+
+  try {
+    const result = await pool.query(
+      'SELECT id, email, blocked FROM users WHERE LOWER(email) = $1',
+      [email]
+    );
+    const user = result.rows[0];
+    if (!user || user.blocked) {
+      return res.json({ success: true, message: genericMessage });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+    await pool.query('DELETE FROM password_resets WHERE user_id = $1 AND used = FALSE', [user.id]);
+    await pool.query(
+      'INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES ($1, $2, $3)',
+      [user.id, sha256(token), expiresAt]
+    );
+
+    const link = `${SITE_URL}/reset.html?token=${token}`;
+    try {
+      const sent = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: user.email,
+        subject: 'Сброс пароля — Выход из комнаты',
+        html: `
+          <div style="font-family:sans-serif;max-width:440px;margin:0 auto;padding:40px 20px;">
+            <h2 style="color:#166088;text-align:center;">Выход из комнаты</h2>
+            <p style="color:#444;font-size:16px;line-height:1.5;">Вы запросили сброс пароля. Нажмите кнопку ниже, чтобы задать новый пароль:</p>
+            <p style="text-align:center;margin:28px 0;">
+              <a href="${link}" style="display:inline-block;background:#4a6fa5;color:#fff;text-decoration:none;padding:14px 28px;border-radius:8px;font-size:16px;font-weight:600;">Сбросить пароль</a>
+            </p>
+            <p style="color:#888;font-size:13px;line-height:1.5;">Ссылка действительна 30 минут и работает один раз. Если вы не запрашивали сброс — просто игнорируйте это письмо.</p>
+            <p style="color:#aaa;font-size:11px;word-break:break-all;">${link}</p>
+          </div>
+        `
+      });
+      if (sent && sent.error) throw new Error(sent.error.message || 'send failed');
+    } catch (emailErr) {
+      console.error('Reset email error:', emailErr.message);
+      return res.status(500).json({ error: 'Не удалось отправить письмо. Попробуйте позже.' });
+    }
+
+    res.json({ success: true, message: genericMessage });
+  } catch (err) {
+    console.error('Forgot error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.post('/api/auth/reset', rateLimiter(10, 300000), async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || typeof token !== 'string' || !password) {
+    return res.status(400).json({ error: 'Ссылка недействительна' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Пароль минимум 8 символов' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT pr.id AS reset_id, pr.user_id, u.email, u.tier, u.trial_sessions_left, u.blocked
+       FROM password_resets pr
+       JOIN users u ON u.id = pr.user_id
+       WHERE pr.token_hash = $1 AND pr.used = FALSE AND pr.expires_at > NOW()`,
+      [sha256(token)]
+    );
+    const row = result.rows[0];
+    if (!row) {
+      return res.status(400).json({ error: 'Ссылка недействительна или истекла. Запросите новую.' });
+    }
+    if (row.blocked) {
+      return res.status(403).json({ error: 'Аккаунт заблокирован' });
+    }
+
+    const hash = bcrypt.hashSync(password, 10);
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, row.user_id]);
+    await pool.query('UPDATE password_resets SET used = TRUE WHERE user_id = $1', [row.user_id]);
+
+    const user = {
+      id: row.user_id,
+      email: row.email,
+      tier: row.tier,
+      trialSessionsLeft: row.trial_sessions_left
+    };
+    const jwtToken = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ success: true, token: jwtToken, user });
+  } catch (err) {
+    console.error('Reset error:', err);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
@@ -1133,6 +1263,7 @@ app.get('/api/health', async (req, res) => {
 
 // ─── Page Routes ───
 app.get('/auth', (req, res) => res.sendFile(path.join(__dirname, 'auth.html')));
+app.get('/reset', (req, res) => res.sendFile(path.join(__dirname, 'reset.html')));
 app.get('/chat', (req, res) => res.sendFile(path.join(__dirname, 'chat.html')));
 app.get('/cabinet', (req, res) => res.sendFile(path.join(__dirname, 'cabinet.html')));
 app.get('/session', (req, res) => res.sendFile(path.join(__dirname, 'session.html')));

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<!-- © 2025–2026 Ssilith. Proprietary. All rights reserved. Commercial use requires royalties. See LICENSE. -->
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://therapy-funnel.onrender.com https://api.deepseek.com; img-src 'self' data:;">
+    <title>Сброс пароля — Выход из комнаты</title>
+    <link rel="icon" href="images/icon-16x16.jpg" type="image/jpeg" sizes="16x16">
+    <link rel="icon" href="images/icon-32x32.jpg" type="image/jpeg" sizes="32x32">
+    <link rel="apple-touch-icon" href="images/icon-64x64.jpg">
+    <style>
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh; display: flex; flex-direction: column;
+            color: #343a40;
+            padding-bottom: env(safe-area-inset-bottom,20px);
+        }
+        .topnav { background: white; border-bottom: 1px solid #e9ecef; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,0.04); flex-shrink: 0; }
+        .topnav-inner { max-width: 800px; margin: 0 auto; display: flex; align-items: center; gap: 4px; padding: 4px 12px; }
+        .topnav .brand { font-weight: 700; color: #166088; margin-right: auto; font-size: 0.95rem; }
+        .topnav a { text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 0.9rem; color: #555; font-weight: 500; }
+        .topnav a:hover { background: #f0f0f0; }
+        .page-center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .card {
+            background: white; border-radius: 12px; padding: 40px;
+            max-width: 420px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 { color: #166088; font-size: 1.6rem; margin-bottom: 6px; text-align: center; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 0.95rem; line-height: 1.5; }
+        .field { margin-bottom: 16px; }
+        .field label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #555; }
+        .field input {
+            width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;
+            font-size: 1rem; transition: border-color 0.2s; box-sizing: border-box;
+        }
+        .field input:focus { outline: none; border-color: #4a6fa5; }
+        .field .hint { margin-top: 6px; font-size: 0.8rem; color: #999; }
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: 8px;
+            font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            min-height: 48px; touch-action: manipulation;
+        }
+        .btn-primary { background: #4a6fa5; color: white; }
+        .btn-primary:hover { background: #166088; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .error { color: #e74c3c; font-size: 0.9rem; margin-bottom: 12px; display: none; }
+        .error.show { display: block; }
+        .success { color: #2ecc71; font-size: 0.9rem; margin-bottom: 12px; display: none; line-height: 1.5; }
+        .success.show { display: block; }
+        .back-link { text-align: center; margin-top: 16px; }
+        .back-link a { color: #4a6fa5; text-decoration: none; font-size: 0.9rem; }
+        @media (max-width: 480px) { .card { padding: 24px; } h1 { font-size: 1.35rem; } }
+    </style>
+</head>
+<body>
+    <nav class="topnav">
+        <div class="topnav-inner">
+            <span class="brand">Выход из комнаты</span>
+            <a href="home.html">Главная</a>
+            <a href="chat.html">Сессия</a>
+        </div>
+    </nav>
+
+    <div class="page-center">
+    <div class="card">
+        <h1>Новый пароль</h1>
+        <p class="subtitle" id="subtitle">Придумайте новый пароль для входа в аккаунт.</p>
+
+        <div id="errorMsg" class="error"></div>
+        <div id="successMsg" class="success"></div>
+
+        <form id="resetForm" class="form" onsubmit="handleReset(event)">
+            <div class="field">
+                <label>Новый пароль</label>
+                <input type="password" id="newPassword" required autocomplete="new-password" minlength="8">
+                <div class="hint">Минимум 8 символов.</div>
+            </div>
+            <div class="field">
+                <label>Повторите пароль</label>
+                <input type="password" id="confirmPassword" required autocomplete="new-password" minlength="8">
+            </div>
+            <button type="submit" class="btn btn-primary" id="resetBtn">Сохранить пароль</button>
+        </form>
+
+        <div class="back-link">
+            <a href="auth.html" id="backLink">← Ко входу</a>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? '' : 'https://therapy-funnel.onrender.com';
+
+        const token = new URLSearchParams(window.location.search).get('token') || '';
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.classList.add('show');
+            document.getElementById('successMsg').classList.remove('show');
+        }
+
+        function showSuccess(msg) {
+            const el = document.getElementById('successMsg');
+            el.textContent = msg;
+            el.classList.add('show');
+            document.getElementById('errorMsg').classList.remove('show');
+        }
+
+        function invalidate() {
+            document.getElementById('resetForm').style.display = 'none';
+            document.getElementById('subtitle').textContent = 'Ссылка для сброса пароля недействительна или устарела.';
+            showError('Запросите новую ссылку на странице входа.');
+            const back = document.getElementById('backLink');
+            back.textContent = '← Запросить новую ссылку';
+            back.href = 'auth.html';
+        }
+
+        if (!token || token.length < 32) {
+            invalidate();
+        }
+
+        async function handleReset(e) {
+            e.preventDefault();
+            document.getElementById('errorMsg').classList.remove('show');
+
+            const password = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            const btn = document.getElementById('resetBtn');
+
+            if (password.length < 8) {
+                showError('Пароль должен быть минимум 8 символов.');
+                return;
+            }
+            if (password !== confirm) {
+                showError('Пароли не совпадают.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Сохраняем...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/reset`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, password })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Не удалось сбросить пароль');
+
+                if (data.token && data.user) {
+                    localStorage.setItem('tf_token', data.token);
+                    localStorage.setItem('tf_user', JSON.stringify(data.user));
+                }
+
+                document.getElementById('resetForm').style.display = 'none';
+                showSuccess('Пароль обновлён. Входим в аккаунт...');
+                setTimeout(() => { window.location.href = 'cabinet.html'; }, 900);
+            } catch (err) {
+                showError(err.message);
+                btn.disabled = false;
+                btn.textContent = 'Сохранить пароль';
+            }
+        }
+    </script>
+</body>
+</html>

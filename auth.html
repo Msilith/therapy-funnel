@@ -90,7 +90,7 @@
 
     <div class="page-center">
     <div class="card">
-        <h1>🔐 Therapy Funnel</h1>
+        <h1>Выход из комнаты</h1>
         <p class="subtitle">Сохраняйте результаты и общайтесь с AI-КПТ-практиком</p>
 
         <div class="tabs">
@@ -112,6 +112,25 @@
                 <input type="password" id="loginPassword" required autocomplete="current-password" minlength="4">
             </div>
             <button type="submit" class="btn btn-primary">Войти</button>
+            <p style="text-align:center;margin-top:12px;">
+                <a href="#" onclick="showForgot(event)" style="color:#4a6fa5;font-size:0.9rem;">Забыли пароль?</a>
+            </p>
+        </form>
+
+        <!-- Forgot password -->
+        <form id="forgotForm" class="form" onsubmit="handleForgot(event)">
+            <div class="info-box">
+                Введите email, на который зарегистрирован аккаунт. Мы пришлём ссылку для сброса пароля —
+                она действует 30 минут и работает один раз.
+            </div>
+            <div class="field">
+                <label>Email</label>
+                <input type="email" id="forgotEmail" required autocomplete="email">
+            </div>
+            <button type="submit" class="btn btn-primary" id="forgotBtn">Отправить ссылку</button>
+            <p style="text-align:center;margin-top:12px;">
+                <a href="#" onclick="showLogin(event)" style="color:#4a6fa5;font-size:0.9rem;">← Вернуться ко входу</a>
+            </p>
         </form>
 
         <!-- Register: Step 1 - Email -->
@@ -137,8 +156,8 @@
                 <input type="text" id="verifyCode" required pattern="[0-9]{6}" maxlength="6" placeholder="123456" autocomplete="one-time-code" inputmode="numeric">
             </div>
             <div class="field">
-                <label>Пароль (мин 4 символа)</label>
-                <input type="password" id="verifyPassword" required autocomplete="new-password" minlength="4">
+                <label>Пароль (мин 8 символов)</label>
+                <input type="password" id="verifyPassword" required autocomplete="new-password" minlength="8">
             </div>
             <button type="submit" class="btn btn-primary" id="verifyBtn">Зарегистрироваться</button>
             <p style="text-align:center;margin-top:12px;">
@@ -162,12 +181,31 @@
         const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? '' : 'https://therapy-funnel.onrender.com';
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        function showForm(name) {
             document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
-            document.querySelector(`.tab:nth-child(${tab === 'register' ? 2 : 1})`).classList.add('active');
-            document.getElementById(tab === 'register' ? 'registerForm' : 'loginForm').classList.add('active');
+            const target = document.getElementById(name + 'Form');
+            if (target) target.classList.add('active');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const idx = { login: 1, register: 2 }[name];
+            if (idx) {
+                const tab = document.querySelector(`.tab:nth-child(${idx})`);
+                if (tab) tab.classList.add('active');
+            }
             hideMessages();
+        }
+
+        function switchTab(tab) {
+            showForm(tab);
+        }
+
+        function showForgot(e) {
+            if (e) e.preventDefault();
+            showForm('forgot');
+        }
+
+        function showLogin(e) {
+            if (e) e.preventDefault();
+            showForm('login');
         }
 
         function showError(msg) {
@@ -212,6 +250,33 @@
                 setTimeout(() => redirectAfterAuth(), 600);
             } catch (err) {
                 showError(err.message);
+            }
+        }
+
+        async function handleForgot(e) {
+            e.preventDefault();
+            hideMessages();
+            const email = document.getElementById('forgotEmail').value.trim();
+            const btn = document.getElementById('forgotBtn');
+
+            btn.disabled = true;
+            btn.textContent = 'Отправляем...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/forgot`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Ошибка отправки');
+                showSuccess(data.message || 'Если такой аккаунт существует, письмо отправлено.');
+                document.getElementById('forgotEmail').value = '';
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Отправить ссылку';
             }
         }
 
