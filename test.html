@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тест — Выход из комнаты</title>
+<link rel="icon" href="images/icon-16x16.jpg" type="image/jpeg" sizes="16x16">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0d0f14;--panel:#151922;--panel2:#1c2230;--text:#e8eaf0;--muted:#8b93a7;--accent:#5b8def;--accent2:#3f6fd0;--line:#242b3a;--good:#4ade80;--warn:#f0b46a;--danger:#f08a8a}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px}
+  nav{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(13,15,20,.85);backdrop-filter:blur(10px);z-index:5}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .logo{font-weight:700}.logo span{color:var(--accent)}
+  .navlinks{display:flex;gap:18px;align-items:center;font-size:.9rem;color:var(--muted)}
+  .navlinks a:hover{color:var(--text)}
+  header{padding:34px 0 8px}
+  h1{font-size:1.7rem;font-weight:800;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin-top:6px;font-size:.92rem}
+  .intro{color:var(--muted);margin:16px 0 22px;font-size:.95rem;line-height:1.6}
+  .progress{height:6px;background:var(--panel2);border-radius:6px;overflow:hidden;margin-bottom:24px}
+  .progress > div{height:100%;width:0;background:var(--accent);transition:width .25s}
+  .q{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:14px}
+  .q .n{color:var(--muted);font-size:.78rem;font-weight:700;letter-spacing:.06em}
+  .q .text{font-size:1.02rem;margin:6px 0 14px;line-height:1.5}
+  .opts{display:flex;flex-direction:column;gap:8px}
+  .opt{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--panel2);transition:.15s;font-size:.94rem}
+  .opt:hover{border-color:var(--accent)}
+  .opt input{accent-color:var(--accent);width:17px;height:17px;flex:none}
+  .opt.sel{border-color:var(--accent);background:rgba(91,141,239,.12)}
+  .btn{display:block;width:100%;text-align:center;padding:14px;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;border:1px solid transparent;background:var(--accent);color:#fff;transition:.2s;margin-top:8px}
+  .btn:hover{background:#7aa2ff}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-ghost{background:none;border-color:var(--line);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent);background:none}
+  .err{color:var(--danger);font-size:.9rem;margin:10px 0;display:none}
+  .err.show{display:block}
+  .result{margin:22px 0 40px}
+  .score-card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:16px;padding:24px;text-align:center;margin-bottom:18px}
+  .score{font-size:3rem;font-weight:800;line-height:1.1}
+  .score small{font-size:1rem;color:var(--muted);font-weight:600}
+  .band{font-size:1.05rem;font-weight:700;margin-top:4px}
+  .chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+  .chip{background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:4px 12px;font-size:.82rem;color:var(--muted)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:14px}
+  .card h2{font-size:1.05rem;margin-bottom:10px}
+  .card p{color:var(--muted);line-height:1.6;margin-bottom:8px}
+  .card ul{margin:8px 0 0 18px;color:var(--muted);line-height:1.6}
+  .card li{margin-bottom:6px}
+  .note-field textarea{width:100%;min-height:84px;resize:vertical;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:12px 14px;font-family:inherit;font-size:.95rem;outline:none;line-height:1.5}
+  .note-field textarea:focus{border-color:var(--accent)}
+  .help-card{border-color:rgba(240,180,106,.4);background:rgba(240,180,106,.07)}
+  .help-card h2{color:var(--warn)}
+  .help-card a{color:var(--accent)}
+  .danger-card{border-color:rgba(240,138,138,.45);background:rgba(240,138,138,.08)}
+  .danger-card h2{color:var(--danger)}
+  .links{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .links a{color:var(--muted);font-size:.88rem;text-decoration:underline}
+  .gate{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:30px;text-align:center;margin:30px 0}
+  .gate .emoji{font-size:2.4rem;margin-bottom:10px}
+  .gate h2{font-size:1.3rem;margin-bottom:8px}
+  .gate p{color:var(--muted);margin-bottom:18px;line-height:1.55}
+  .gate .btn{margin-top:10px}
+  footer{border-top:1px solid var(--line);margin-top:20px;padding:22px 0 60px;color:var(--muted);font-size:.82rem;line-height:1.6}
+  footer a{color:var(--accent)}
+  @media(max-width:520px){h1{font-size:1.4rem}.score{font-size:2.4rem}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <div class="logo"><a href="home.html">Выход из <span>комнаты</span></a></div>
+    <div class="navlinks">
+      <a href="tests.html">← Тесты</a>
+      <a href="help.html">Помощь</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap" id="app"></div>
+
+<footer class="wrap">
+  <p>Это не диагностика. Результат — повод для разговора, а не диагноз. <a href="help.html">Куда обращаться за помощью →</a></p>
+</footer>
+
+<script src="tests-data.js"></script>
+<script>
+const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:3000' : 'https://therapy-funnel.onrender.com';
+const token = localStorage.getItem('tf_token');
+const app = document.getElementById('app');
+const params = new URLSearchParams(location.search);
+const testId = params.get('id');
+const test = (window.TESTS || []).find(t => t.id === testId);
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function renderGate(reason) {
+  const noAuth = reason === 'auth';
+  app.innerHTML = `<div class="gate">
+    <div class="emoji">🔒</div>
+    <h2>${noAuth ? 'Нужен аккаунт' : 'Этот тест входит в подписку'}</h2>
+    <p>${noAuth
+      ? 'Войди или зарегистрируйся, чтобы пройти глубокий тест и обсудить результат с ИИ-консультантом.'
+      : 'Глубокие тесты открываются по подписке. Бесплатный «Быстрый чек-ин» доступен без ограничений.'}</p>
+    <a class="btn" href="${noAuth ? 'auth.html' : 'subscribe.html'}">${noAuth ? 'Войти / Зарегистрироваться' : 'Оформить подписку'}</a>
+    <a class="btn btn-ghost" href="tests.html">← К списку тестов</a>
+  </div>`;
+}
+
+function renderTest() {
+  const optsHtml = test.options.map(o =>
+    `<label class="opt"><input type="radio" value="${o.value}"> ${esc(o.label)}</label>`).join('');
+  const qs = test.items.map((q, i) => `
+    <div class="q" data-i="${i}">
+      <div class="n">ВОПРОС ${i + 1} ИЗ ${test.items.length}</div>
+      <div class="text">${esc(q)}</div>
+      <div class="opts">${optsHtml}</div>
+    </div>`).join('');
+
+  app.innerHTML = `
+    <header>
+      <h1>${esc(test.title)}</h1>
+      <p class="sub">${esc(test.subtitle)} · ~${test.minutes} мин</p>
+    </header>
+    <p class="intro">${esc(test.intro)}</p>
+    <div class="progress"><div id="bar"></div></div>
+    <div id="form">${qs}</div>
+    <div class="err" id="err"></div>
+    <button class="btn" id="submit">Показать результат</button>
+    <p style="color:var(--muted);font-size:.8rem;margin-top:18px;line-height:1.55">${esc(test.source)}</p>`;
+
+  const answers = new Array(test.items.length).fill(null);
+
+  app.querySelectorAll('.q').forEach((qEl, i) => {
+    qEl.querySelectorAll('input[type=radio]').forEach(inp => {
+      inp.name = 'q' + i;
+      inp.addEventListener('change', () => {
+        answers[i] = Number(inp.value);
+        qEl.querySelectorAll('.opt').forEach(o => o.classList.remove('sel'));
+        inp.closest('.opt').classList.add('sel');
+        updateBar();
+      });
+    });
+  });
+
+  function updateBar() {
+    const done = answers.filter(a => a !== null).length;
+    document.getElementById('bar').style.width = Math.round(done / test.items.length * 100) + '%';
+  }
+
+  document.getElementById('submit').addEventListener('click', () => {
+    const missing = answers.findIndex(a => a === null);
+    const err = document.getElementById('err');
+    if (missing !== -1) {
+      err.textContent = `Ответь на вопрос ${missing + 1}.`;
+      err.classList.add('show');
+      document.querySelector(`.q[data-i="${missing}"]`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    err.classList.remove('show');
+    showResult(answers);
+  });
+}
+
+function showResult(answers) {
+  const score = answers.reduce((a, b) => a + b, 0);
+  const band = test.bands.find(b => score <= b.max) || test.bands[test.bands.length - 1];
+
+  let subChips = '';
+  let subAnxiety = '';
+  let subDepression = '';
+  if (test.subscales) {
+    subChips = test.subscales.map(s => {
+      const val = s.items.reduce((acc, idx) => acc + answers[idx], 0);
+      if (s.key === 'anxiety') subAnxiety = val;
+      if (s.key === 'depression') subDepression = val;
+      return `<span class="chip">${esc(s.name)}: ${val}/${s.max}</span>`;
+    }).join('');
+  }
+
+  const highRisk = (test.id === 'phq4' && score >= 9) ||
+                   (test.subscales && (Number(subAnxiety) >= 3 || Number(subDepression) >= 3));
+
+  const noticeHtml = highRisk ? `
+    <div class="card danger-card">
+      <h2>Важно</h2>
+      <p>Результат указывает на заметную нагрузку. Это не диагноз, но с таким состоянием лучше не оставаться один на один. Если есть мысли о самоповреждении или ощущение безнадёжности — пожалуйста, свяжись с живым человеком сейчас.</p>
+      <p><strong>112</strong> — экстренные службы · <strong>8 (800) 2000-122</strong> — телефон доверия · <a href="help.html">все контакты →</a></p>
+    </div>` : '';
+
+  app.innerHTML = `
+    <div class="result">
+      <div class="score-card">
+        <div class="score">${score}<small> / ${test.max}</small></div>
+        <div class="band">${esc(band.label)}</div>
+        ${subChips ? `<div class="chips">${subChips}</div>` : ''}
+      </div>
+
+      ${noticeHtml}
+
+      <div class="card">
+        <h2>Что это значит</h2>
+        <p>${esc(band.text)}</p>
+      </div>
+
+      <div class="card">
+        <h2>Что можно сделать</h2>
+        <ul>${band.advice.map(a => `<li>${esc(a)}</li>`).join('')}</ul>
+      </div>
+
+      <div class="card note-field">
+        <h2>Что беспокоит сильнее всего?</h2>
+        <p style="margin-bottom:10px">Пара слов — и мы подставим их в начало разговора.</p>
+        <textarea id="note" placeholder="Например: боюсь, что на ревью все поймут, что я не тяну"></textarea>
+      </div>
+
+      <button class="btn" id="discuss">Обсудить результаты с ИИ-консультантом</button>
+      <a class="btn btn-ghost" href="tests.html" style="margin-top:10px">← К списку тестов</a>
+      <div class="links" style="justify-content:center;margin-top:14px">
+        <a href="help.html">Кому и когда обращаться за помощью</a>
+      </div>
+    </div>`;
+
+  if (token) {
+    fetch(`${API_BASE}/api/tests/results`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ testId: test.id, score, band: band.label, answers })
+    }).catch(() => {});
+  }
+
+  document.getElementById('discuss').addEventListener('click', () => {
+    const note = (document.getElementById('note').value || '').trim() || 'пока трудно сформулировать';
+    let prompt = test.prompt
+      .replace(/{score}/g, score)
+      .replace(/{max}/g, test.max)
+      .replace(/{band}/g, band.label)
+      .replace(/{note}/g, note);
+    if (test.subscales) {
+      prompt = prompt
+        .replace(/{subAnxiety}/g, subAnxiety)
+        .replace(/{subDepression}/g, subDepression);
+    }
+    localStorage.setItem('tf_pending_prompt', JSON.stringify({ prompt, testId: test.id, testTitle: test.title }));
+    location.href = token ? 'launch.html' : 'auth.html?redirect=launch';
+  });
+}
+
+async function init() {
+  if (!test) { location.replace('tests.html'); return; }
+
+  if (!test.free) {
+    if (!token) { renderGate('auth'); return; }
+    let isPro = false;
+    try {
+      const u = JSON.parse(localStorage.getItem('tf_user') || '{}');
+      isPro = u.tier === 'pro';
+    } catch {}
+    if (!isPro) {
+      try {
+        const u = await fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: 'Bearer ' + token } }).then(r => r.ok ? r.json() : null);
+        if (u && !u.error) { isPro = u.tier === 'pro'; localStorage.setItem('tf_user', JSON.stringify(u)); }
+      } catch {}
+    }
+    if (!isPro) { renderGate('subscribe'); return; }
+  }
+
+  renderTest();
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Помощь — Выход из комнаты</title>
+<link rel="icon" href="images/icon-16x16.jpg" type="image/jpeg" sizes="16x16">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0d0f14;--panel:#151922;--panel2:#1c2230;--text:#e8eaf0;--muted:#8b93a7;--accent:#5b8def;--line:#242b3a;--danger:#f08a8a;--warn:#f0b46a}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.65;min-height:100vh}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px}
+  nav{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(13,15,20,.85);backdrop-filter:blur(10px);z-index:5}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .logo{font-weight:700}.logo span{color:var(--accent)}
+  .navlinks{display:flex;gap:18px;align-items:center;font-size:.9rem;color:var(--muted)}
+  .navlinks a:hover{color:var(--text)}
+  header{padding:40px 0 10px}
+  h1{font-size:1.9rem;font-weight:800;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin-top:8px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin:16px 0}
+  .card h2{font-size:1.12rem;margin-bottom:12px}
+  .card p{color:var(--muted);margin-bottom:10px}
+  .card ul{margin:8px 0 0 18px;color:var(--muted)}
+  .card li{margin-bottom:8px}
+  .emergency{border-color:rgba(240,138,138,.45);background:rgba(240,138,138,.08)}
+  .emergency h2{color:var(--danger)}
+  .numbers{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .num{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .num b{font-size:1.15rem;color:var(--text);white-space:nowrap}
+  .num span{color:var(--muted);font-size:.9rem}
+  .callout{border-color:rgba(240,180,106,.4);background:rgba(240,180,106,.07)}
+  .callout h2{color:var(--warn)}
+  .btn{display:inline-block;padding:11px 18px;border-radius:10px;font-weight:600;font-size:.92rem;border:1px solid var(--line);color:var(--text);background:none;margin-top:8px}
+  .btn:hover{border-color:var(--accent);text-decoration:none}
+  footer{border-top:1px solid var(--line);margin-top:26px;padding:22px 0 60px;color:var(--muted);font-size:.82rem;line-height:1.6}
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <div class="logo"><a href="home.html">Выход из <span>комнаты</span></a></div>
+    <div class="navlinks">
+      <a href="tests.html">Тесты</a>
+      <a href="cabinet.html">Мои сессии</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <header>
+    <h1>Помощь</h1>
+    <p class="sub">Если тебе сейчас тяжело — это не слабость. Вот куда можно обратиться.</p>
+  </header>
+
+  <div class="card emergency">
+    <h2>Если есть риск для жизни — сейчас</h2>
+    <p>Не оставайся один. Позвони по одному из номеров или попроси близкого человека быть рядом.</p>
+    <div class="numbers">
+      <div class="num"><b>112</b><span>единый номер экстренных служб (Россия)</span></div>
+      <div class="num"><b>103</b><span>скорая медицинская помощь</span></div>
+      <div class="num"><b>8 (800) 2000-122</b><span>всероссийский телефон доверия для детей, подростков и их родителей — круглосуточно, бесплатно</span></div>
+      <div class="num"><b>8 (800) 100-49-94</b><span>горячая линия психологической помощи МЧС России — круглосуточно, бесплатно</span></div>
+      <div class="num"><b>8 (495) 989-50-50</b><span>Московская служба психологической помощи населению</span></div>
+    </div>
+    <p style="margin-top:12px">Если ты не в России: <b>112</b> — ЕС, <b>988</b> — США, <b>116 123</b> — Великобритания.</p>
+  </div>
+
+  <div class="card callout">
+    <h2>Когда стоит обратиться к врачу</h2>
+    <ul>
+      <li>Есть мысли о том, чтобы причинить себе вред, или ощущение, что жить больше не имеет смысла.</li>
+      <li>Слышишь голоса, видишь то, чего нет, или теряешь связь с реальностью.</li>
+      <li>Больше двух недель нет сил, не можешь вставать, работать, есть или спать.</li>
+      <li>Панические атаки, сильная тревога или бессонница мешают жить.</li>
+      <li>Есть зависимость, насилие или острая травматическая ситуация.</li>
+      <li>Состояние ухудшается, и ты чувствуешь, что сам не справляешься.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Куда идти</h2>
+    <ul>
+      <li><b>Поликлиника по ОМС</b> — психотерапевт или психиатр, часто нужна запись через участкового.</li>
+      <li><b>ПНД / ЦПЗ по месту жительства</b> — психоневрологический диспансер или центр психического здоровья.</li>
+      <li><b>Частный психотерапевт или клиника</b> — если нужна быстрая запись.</li>
+      <li><b>103 / 112</b> — если есть непосредственная угроза жизни.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Что это за сайт</h2>
+    <p>«Выход из комнаты» — вспомогательный инструмент самоисследования на основе КПТ. Это не медицинская, не психологическая и не психотерапевтическая услуга.</p>
+    <p>AI-консультант не ставит диагнозы, не назначает лечение и не заменяет живого специалиста. Тесты на сайте — не диагностика, а повод для разговора.</p>
+    <p>Если состояние тяжёлое — пожалуйста, выбери живого человека и специалиста, а не чат.</p>
+  </div>
+
+  <a class="btn" href="tests.html">← Вернуться к тестам</a>
+</div>
+
+<footer class="wrap">
+  <p>© 2026 Выход из комнаты. При угрозе жизни звони 112.</p>
+</footer>
+</body>
+</html>

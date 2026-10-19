@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Запуск сессии — Выход из комнаты</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0d0f14;--panel:#151922;--panel2:#1c2230;--text:#e8eaf0;--muted:#8b93a7;--accent:#5b8def;--line:#242b3a;--danger:#f08a8a}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;line-height:1.6}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:34px 28px;max-width:440px;width:100%;text-align:center}
+  .emoji{font-size:2.6rem;margin-bottom:14px}
+  h1{font-size:1.35rem;margin-bottom:10px}
+  p{color:var(--muted);font-size:.95rem;line-height:1.6}
+  .spinner{width:34px;height:34px;border:3px solid var(--panel2);border-top-color:var(--accent);border-radius:50%;margin:18px auto 0;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .btn{display:block;text-align:center;padding:13px;border-radius:10px;font-weight:700;text-decoration:none;margin-top:16px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:.98rem}
+  .btn.ghost{background:none;border:1px solid var(--line);color:var(--text)}
+  .err{color:var(--danger);font-size:.9rem;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="emoji" id="emoji">🧠</div>
+  <h1 id="title">Создаём сессию</h1>
+  <p id="text">Сейчас подставим результаты теста и начнём разговор.</p>
+  <div class="spinner" id="spinner"></div>
+  <div id="actions"></div>
+</div>
+
+<script>
+const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:3000' : 'https://therapy-funnel.onrender.com';
+const token = localStorage.getItem('tf_token');
+
+if (!token) {
+  location.replace('auth.html?redirect=launch');
+}
+
+function fail(title, text, emoji) {
+  document.getElementById('emoji').textContent = emoji || '⚠️';
+  document.getElementById('title').textContent = title;
+  document.getElementById('text').textContent = text;
+  document.getElementById('spinner').style.display = 'none';
+  const actions = document.getElementById('actions');
+  actions.innerHTML = '<a class="btn" href="cabinet.html">Мои сессии</a><a class="btn ghost" href="tests.html">К тестам</a>';
+}
+
+async function start() {
+  let pending = null;
+  try { pending = JSON.parse(localStorage.getItem('tf_pending_prompt') || 'null'); } catch {}
+  if (!pending || !pending.prompt) { location.replace('cabinet.html'); return; }
+
+  try {
+    const r1 = await fetch(`${API_BASE}/api/sessions`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    if (r1.status === 401) { location.replace('auth.html?redirect=launch'); return; }
+    const d1 = await r1.json();
+    if (!d1.session) throw new Error('Не удалось создать сессию');
+
+    const r2 = await fetch(`${API_BASE}/api/sessions/${d1.session.id}/messages`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: pending.prompt })
+    });
+
+    if (r2.status === 402) {
+      localStorage.removeItem('tf_pending_prompt');
+      document.getElementById('emoji').textContent = '🔒';
+      document.getElementById('title').textContent = 'Бесплатные сообщения закончились';
+      document.getElementById('text').textContent = 'Чтобы обсудить результат и продолжать сессии, нужна подписка.';
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('actions').innerHTML = '<a class="btn" href="subscribe.html">Оформить подписку</a><a class="btn ghost" href="cabinet.html">Мои сессии</a>';
+      return;
+    }
+
+    if (r2.status === 401) { location.replace('auth.html?redirect=launch'); return; }
+    if (!r2.ok) {
+      const e = await r2.json().catch(() => ({}));
+      throw new Error(e.error || 'Ошибка запуска сессии');
+    }
+
+    localStorage.removeItem('tf_pending_prompt');
+    location.replace('session.html?id=' + d1.session.id);
+  } catch (e) {
+    fail('Не получилось запустить', e.message || 'Попробуй ещё раз.', '⚠️');
+  }
+}
+
+start();
+</script>
+</body>
+</html>

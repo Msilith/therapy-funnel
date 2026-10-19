@@ -381,8 +381,14 @@
         }
 
         function redirectAfterAuth() {
-            // После входа/регистрации — в кабинет с сессиями
-            window.location.href = 'cabinet.html';
+            // Если есть отложенный запрос из теста — запускаем сессию с ним
+            const pending = localStorage.getItem('tf_pending_prompt');
+            const params = new URLSearchParams(location.search);
+            if (pending || params.get('redirect') === 'launch') {
+                window.location.href = 'launch.html';
+            } else {
+                window.location.href = 'cabinet.html';
+            }
         }
 
         // Translate nav based on saved language

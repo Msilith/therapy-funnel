@@ -144,6 +144,16 @@ async function initDB() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS test_results (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        test_id TEXT NOT NULL,
+        score INTEGER,
+        band TEXT,
+        answers JSONB DEFAULT '[]',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS sessions (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -294,7 +304,9 @@ const CRISIS_RESPONSE = `Стоп. То, что ты описываешь, — �
 • Единый экстренный номер: 112
 • Кризисная линия 8 (800) 2000-122 (круглосуточно, бесплатно)
 
-Пожалуйста, свяжись с живым человеком прямо сейчас. Я — программа и не могу заменить человека в этом моменте. Когда будешь в безопасности — я здесь.`;
+Пожалуйста, свяжись с живым человеком прямо сейчас. Я — программа и не могу заменить человека в этом моменте. Когда будешь в безопасности — я здесь.
+
+Контакты и куда идти: therapyvoid.com/help.html`;
 
 const AGGRESSION_RESPONSE = `Я слышу, что в тебе сейчас много гнева. Если чувствуешь, что можешь причинить вред себе или другим, — нужен живой человек рядом.
 
@@ -1175,6 +1187,30 @@ app.post('/api/subscription/request', rateLimiter(5, 600000), optionalAuth, asyn
   }
 });
 
+// ─── Test results ───
+app.post('/api/tests/results', rateLimiter(20, 300000), optionalAuth, async (req, res) => {
+  const { testId, score, band, answers } = req.body || {};
+  if (!testId || typeof score !== 'number') {
+    return res.status(400).json({ error: 'Некорректные данные' });
+  }
+  try {
+    await pool.query(
+      'INSERT INTO test_results (user_id, test_id, score, band, answers) VALUES ($1,$2,$3,$4,$5)',
+      [
+        req.user ? req.user.id : null,
+        String(testId).slice(0, 40),
+        score,
+        band ? String(band).slice(0, 80) : null,
+        JSON.stringify(Array.isArray(answers) ? answers : [])
+      ]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Test result error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 // ─── Admin ───
 function adminMiddleware(req, res, next) {
   const header = req.headers.authorization;
@@ -1249,7 +1285,8 @@ app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
     const blocked = (await pool.query('SELECT COUNT(*) AS c FROM users WHERE blocked = TRUE')).rows[0].c;
     const last7 = (await pool.query("SELECT COUNT(*) AS c FROM users WHERE created_at > NOW() - INTERVAL '7 days'")).rows[0].c;
     const subs = (await pool.query("SELECT COUNT(*) AS c FROM subscription_requests WHERE status = 'new'")).rows[0].c;
-    res.json({ users, sessions, messages, blocked, last7, subs });
+    const tests = (await pool.query('SELECT COUNT(*) AS c FROM test_results')).rows[0].c;
+    res.json({ users, sessions, messages, blocked, last7, subs, tests });
   } catch (err) { console.error('admin stats:', err); res.status(500).json({ error: 'Ошибка сервера' }); }
 });
 
@@ -1327,6 +1364,11 @@ app.get('/api/health', async (req, res) => {
 // ─── Page Routes ───
 app.get('/auth', (req, res) => res.sendFile(path.join(__dirname, 'auth.html')));
 app.get('/reset', (req, res) => res.sendFile(path.join(__dirname, 'reset.html')));
+app.get('/tests', (req, res) => res.sendFile(path.join(__dirname, 'tests.html')));
+app.get('/test', (req, res) => res.sendFile(path.join(__dirname, 'test.html')));
+app.get('/help', (req, res) => res.sendFile(path.join(__dirname, 'help.html')));
+app.get('/subscribe', (req, res) => res.sendFile(path.join(__dirname, 'subscribe.html')));
+app.get('/launch', (req, res) => res.sendFile(path.join(__dirname, 'launch.html')));
 app.get('/chat', (req, res) => res.sendFile(path.join(__dirname, 'chat.html')));
 app.get('/cabinet', (req, res) => res.sendFile(path.join(__dirname, 'cabinet.html')));
 app.get('/session', (req, res) => res.sendFile(path.join(__dirname, 'session.html')));
